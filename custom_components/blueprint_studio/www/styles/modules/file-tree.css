@@ -1,0 +1,429 @@
+    .search-container {
+      padding: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+    }
+
+    /* Loading States */
+      border-color: var(--accent-color);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .selection-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: var(--bg-tertiary);
+        border-bottom: 1px solid var(--border-color);
+        font-size: 12px;
+    }
+
+    .selection-count {
+        font-weight: 500;
+        color: var(--accent-color);
+    }
+
+    .selection-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .selection-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: var(--bg-secondary);
+        border-radius: 4px;
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+
+    .selection-btn:hover {
+        background: var(--bg-hover);
+    }
+
+    .selection-btn .material-icons {
+        font-size: 16px;
+    }
+
+    .file-tree {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 4px 0;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+    }
+
+    /* Favorites panel */
+    .favorites-panel {
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+
+    .favorites-header {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      padding: 8px 12px 4px 12px;
+    }
+
+    /* Recent Files panel */
+    .recent-files-panel {
+      background: var(--bg-secondary);
+    }
+
+    .recent-files-header {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      padding: 8px 12px 4px 12px;
+    }
+
+    .recent-files-list {
+      max-height: 120px; /* Show approx 3 items (40px each) */
+      overflow-y: auto;
+      border-bottom: 1px solid var(--border-color);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .recent-files-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .recent-files-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .recent-files-list::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    .favorite-item {
+      background: var(--bg-tertiary);
+    }
+
+    .favorite-item .tree-item-actions {
+      display: flex;
+    }
+
+    .tree-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 8px;
+      padding-left: calc(8px + var(--depth, 0) * 16px);
+      cursor: pointer;
+      user-select: none;
+      font-size: 14px;
+      transition: background 0.1s;
+      min-height: 40px;
+      position: relative;
+      touch-action: manipulation;
+    }
+
+    .tree-item:hover, .tree-item:active {
+      background: var(--bg-hover);
+    }
+
+    .tree-item-checkbox {
+        margin-right: 8px;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        display: none; /* Hidden by default */
+    }
+
+    .tree-item-checkbox.visible {
+        display: block;
+    }
+
+    .tree-item.active {
+      background: var(--bg-active);
+      color: white;
+    }
+
+    .tree-item.drag-over {
+      background: var(--accent-color-transparent, rgba(33, 150, 243, 0.2)) !important;
+      border: 1px dashed var(--accent-color);
+    }
+
+    .tree-item.dragging {
+      opacity: 0.5;
+    }
+
+    .file-tree.drag-over-root {
+      background: var(--bg-hover);
+      border: 2px dashed var(--accent-color);
+    }
+
+    .tree-item.modified::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--warning-color);
+      border-radius: 50%;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .tree-item-actions {
+      display: none;
+      margin-left: auto;
+      gap: 2px;
+    }
+
+    .tree-item:hover .tree-item-actions {
+      display: flex;
+    }
+
+    .tree-item.modified .tree-item-actions {
+      display: none;
+    }
+
+    /* Lazy Loading - Loading spinner in tree */
+    .tree-chevron .loading-spinner {
+      animation: spin 1s linear infinite;
+      font-size: 16px;
+      color: var(--accent-color);
+    }
+
+    /* Lazy Loading - Loading placeholder item */
+    .loading-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      min-height: 40px;
+      pointer-events: none;
+    }
+
+    .loading-item .loading-spinner {
+      animation: spin 1s linear infinite;
+      font-size: 16px;
+      margin-right: 8px;
+      color: var(--accent-color);
+    }
+
+    /* Folder Navigation Bar */
+    .folder-navigation {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      gap: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      min-height: 48px; /* Ensure consistent height */
+    }
+
+    .nav-back-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: all 0.1s;
+      flex-shrink: 0; /* Don't shrink */
+    }
+
+    .nav-back-btn:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--accent-color);
+    }
+
+    .nav-back-btn:active:not(:disabled) {      transform: scale(0.95);
+    }
+
+    .nav-back-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: var(--border-color);
+    }
+
+    .nav-back-btn .material-icons {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      overflow-x: auto;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    .breadcrumb-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      color: var(--text-secondary);
+      transition: background 0.1s;
+    }
+
+    .breadcrumb-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .breadcrumb-item.active {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .breadcrumb-item .material-icons {
+      font-size: 16px;
+    }
+
+    .breadcrumb-separator {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin: 0 4px;
+    }
+
+    .tree-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      border-radius: 4px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .tree-action-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .tree-action-btn .material-icons {
+      font-size: 16px;
+    }
+
+    .tree-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .tree-icon .material-icons {
+      font-size: 20px;
+    }
+
+    .tree-icon.folder { color: var(--icon-folder); }
+    .tree-icon.yaml { color: var(--icon-yaml); }
+    .tree-icon.json { color: var(--icon-json); }
+    .tree-icon.python { color: var(--icon-python); }
+    .tree-icon.js { color: var(--icon-js); }
+    .tree-icon.default { color: var(--icon-default); }
+
+    .tree-chevron {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 4px;
+      flex-shrink: 0;
+      transition: transform 0.15s;
+    }
+
+    .tree-chevron .material-icons {
+      font-size: 18px;
+      color: var(--text-secondary);
+    }
+
+    .tree-chevron.expanded {
+      transform: rotate(90deg);
+    }
+
+    .tree-chevron.hidden {
+      visibility: hidden;
+    }
+
+    .tree-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    /* File Tree Loading State */
+    .file-tree.loading {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .git-file-group-icon.octicon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .git-file-icon.octicon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .git-panel-btn .octicon {
+      width: 18px;
+      height: 18px;
+    }
+
+/* Search Result Hover Actions */
+.search-result-match:hover .match-hover-actions {
+    opacity: 1 !important;
+}
+.search-result-actions .search-action-btn:hover {
+    opacity: 1 !important;
+    color: var(--accent-color);
+}
+.search-result-match .material-icons:hover {
+    color: var(--accent-color);
+}
+.search-result-match .material-icons[title*="Dismiss"]:hover {
+    color: var(--error-color);
+}

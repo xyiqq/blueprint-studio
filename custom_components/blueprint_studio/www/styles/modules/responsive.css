@@ -1,0 +1,912 @@
+    /* ============================================
+       RESPONSIVE STYLES - Mobile & Tablet
+       ============================================ */
+
+    /* Tablet Styles (769px - 1024px) */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      /* Adjust sidebar width for tablets */
+      .sidebar {
+        width: 300px;
+        min-width: 220px;
+        max-width: 40vw;
+      }
+
+      /* Hide some toolbar labels to save space */
+      .toolbar-group {
+        padding: 0 2px;
+      }
+
+      /* Reduce breadcrumb max-width */
+      .breadcrumb-container {
+        max-width: 200px;
+      }
+
+      /* Adjust search widget for tablet */
+      .search-widget {
+        width: 300px;
+        right: 10px;
+      }
+
+      /* AI Sidebar takes more space on tablet */
+      .ai-sidebar {
+        width: 320px;
+        min-width: 220px;
+        max-width: 45vw;
+      }
+
+      /* Adjust tab sizing */
+      .tab {
+        min-width: 100px;
+        max-width: 180px;
+      }
+
+      /* Split view adjustments */
+      .split-container {
+        flex-direction: column;
+      }
+
+      .split-container.split-vertical {
+        flex-direction: row;
+      }
+
+      .editor-pane {
+        min-height: 200px;
+      }
+
+      /* Modal adjustments for tablet */
+      .modal {
+        max-width: 500px;
+      }
+
+      /* Settings modal wider on tablet */
+      .settings-modal .modal {
+        max-width: 600px;
+      }
+
+      /* Git panel adjustments */
+      .git-panel {
+        max-height: 35vh;
+      }
+
+      /* Quick switcher adjustments */
+      .quick-switcher {
+        width: 450px;
+      }
+    }
+
+    /* Mobile Styles (max-width: 768px) */
+    @media (max-width: 768px) {
+      /* Mobile viewport setup - use 100% without fixed positioning issues */
+      html, body {
+        position: fixed;
+        height: 100% !important;
+        height: 100dvh !important;
+        width: 100%;
+        overflow: hidden;
+        inset: 0;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Main container fills remaining space */
+      .main-container {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        overflow: hidden;
+      }
+
+      /* Editor area fills available space */
+      .editor-area {
+        flex: 1;
+        min-height: 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Editor container fills parent */
+      .editor-container {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Ensure CodeMirror wrapper fills container */
+      #codemirror-wrapper,
+      #codemirror-wrapper-secondary {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        height: 100% !important;
+        width: 100% !important;
+      }
+
+      .CodeMirror {
+        height: 100% !important;
+        width: 100% !important;
+      }
+
+      /* Split container fills available space */
+      .split-container {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .editor-pane {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .toolbar {
+        padding: 0 4px;
+        padding-top: env(safe-area-inset-top, 2px);
+        padding-bottom: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 1px;
+        min-height: 38px;
+        max-height: 42px;
+        flex-shrink: 0;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      /* Hide scrollbar in toolbar but allow scrolling */
+      .toolbar::-webkit-scrollbar {
+        height: 0px;
+        background: transparent;
+      }
+
+      .toolbar-group {
+        padding: 0;
+        flex-shrink: 0;
+      }
+
+      /* Force status bar to single line with scroll */
+      .status-bar {
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        min-height: 24px !important;
+        padding: 2px 8px !important;
+        padding-bottom: max(2px, env(safe-area-inset-bottom)) !important;
+      }
+
+      .status-bar::-webkit-scrollbar {
+        height: 0px;
+        background: transparent;
+      }
+
+      /* More compact toolbar buttons */
+      .toolbar-btn {
+        min-width: 30px;
+        height: 30px;
+        padding: 0;
+      }
+
+      .toolbar-btn .material-icons {
+        font-size: 18px;
+      }
+
+      /* Hide less important toolbar groups on small mobile */
+      #group-split-view,
+      #btn-upload-folder,
+      #btn-download-folder,
+      #btn-one-tab-mode,
+      #btn-toggle-select {
+        display: none;
+      }
+
+      /* Make toolbar groups more compact */
+      .toolbar-group {
+        padding: 0 2px;
+        gap: 0;
+        border-right: none;
+      }
+
+      /* Add subtle separator between groups */
+      .toolbar-group + .toolbar-group {
+        border-left: 1px solid var(--border-color);
+        padding-left: 2px;
+        margin-left: 2px;
+      }
+
+      /* Hide toolbar spacer on mobile to save space */
+      .toolbar-spacer {
+        display: none;
+      }
+
+      .file-path-display {
+        display: none;
+      }
+
+      .breadcrumb-container {
+        display: none;
+      }
+
+      /* Sidebar as overlay drawer on mobile */
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 85vw;
+        min-width: 260px;
+        max-width: 320px;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 15px rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        background: var(--bg-secondary);
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .sidebar.visible {
+        transform: translateX(0);
+      }
+
+      /* Sidebar overlay for mobile */
+      .sidebar-overlay {
+        display: block;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+      }
+
+      .sidebar-overlay.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Activity bar adjustments for mobile sidebar */
+      .activity-bar {
+        width: 44px;
+      }
+
+      .activity-item {
+        width: 44px;
+        height: 44px;
+      }
+
+      .activity-item .material-icons {
+        font-size: 22px;
+      }
+
+      /* Fix header overlapping status bar in PWA */
+      .header {
+        padding-top: env(safe-area-inset-top);
+        height: auto;
+        min-height: 48px;
+      }
+
+      /* Tabs optimized for mobile touch */
+      .tab {
+        min-width: 70px;
+        max-width: 140px;
+        padding: 4px 10px;
+        height: 38px;
+        font-size: 13px;
+      }
+
+      .tab-close {
+        display: flex;
+        width: 24px;
+        height: 24px;
+        margin-left: 2px;
+      }
+
+      .tab-close .material-icons {
+        font-size: 16px;
+      }
+
+      /* Tab pane badges smaller on mobile */
+      .tab-pane-badge {
+        font-size: 9px;
+        padding: 1px 4px;
+        margin-left: 4px;
+      }
+
+      /* Mobile Touch Optimizations */
+      .tree-item {
+        padding: 12px 10px;
+        min-height: 48px;
+        font-size: 14px;
+        -webkit-tap-highlight-color: rgba(14, 99, 156, 0.3);
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* Active state for touch feedback */
+      .tree-item:active {
+        background: var(--bg-active);
+      }
+
+      .tree-item .material-icons {
+        font-size: 20px;
+      }
+
+      .tree-chevron {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        min-height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Folder navigation bar adjustments */
+      .folder-navigation {
+        min-height: 44px;
+        padding: 6px 8px;
+      }
+
+      .nav-back-btn {
+        min-width: 36px;
+        width: 36px;
+        height: 36px;
+      }
+
+      /* Improve scrolling on mobile */
+      .sidebar-content, .editor-container {
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Search widget mobile optimization */
+      .search-widget {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 12px 12px 0 0;
+        border: none;
+        border-top: 1px solid var(--border-color);
+        padding: 8px 12px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        max-height: 50vh;
+      }
+
+      .search-widget input {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 8px 12px;
+      }
+
+      .search-row {
+        gap: 8px;
+      }
+
+      .search-actions button {
+        width: 36px;
+        height: 36px;
+      }
+
+      /* AI Sidebar mobile overlay */
+      .ai-sidebar {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 90vw;
+        max-width: 380px;
+        min-width: 280px;
+        transform: translateX(100%);
+        z-index: 2001;
+        border-left: none;
+        box-shadow: -2px 0 15px rgba(0, 0, 0, 0.5);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .ai-sidebar.visible {
+        transform: translateX(0);
+      }
+
+      .ai-sidebar.hidden {
+        display: flex;
+        transform: translateX(100%);
+      }
+
+      /* AI chat input larger for mobile */
+      #ai-chat-input {
+        font-size: 16px;
+        min-height: 44px;
+      }
+
+      #btn-ai-send {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+      }
+
+      /* Modal mobile optimizations */
+      .modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+      }
+
+      .modal {
+        max-width: 100%;
+        width: 100%;
+        max-height: 85vh;
+        border-radius: 16px 16px 0 0;
+        animation: modalSlideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @keyframes modalSlideUp {
+        from {
+          transform: translateY(100%);
+          opacity: 0.8;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-header {
+        padding: 16px;
+        min-height: 56px;
+      }
+
+      .modal-title {
+        font-size: 18px;
+      }
+
+      .modal-body {
+        padding: 16px;
+        max-height: 60vh;
+      }
+
+      .modal-footer {
+        padding: 12px 16px;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+
+      .modal-btn {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 16px;
+        min-height: 44px;
+      }
+
+      /* Context menu mobile adjustments */
+      .context-menu {
+        min-width: 180px;
+        border-radius: 8px;
+        padding: 6px 0;
+      }
+
+      .context-menu-item {
+        padding: 12px 16px;
+        font-size: 15px;
+      }
+
+      .context-menu-item .material-icons {
+        font-size: 20px;
+        margin-right: 12px;
+      }
+
+      /* Toast notifications mobile */
+      .toast-container {
+        left: 12px;
+        right: 12px;
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        min-width: auto;
+        max-width: none;
+        width: auto;
+      }
+
+      .toast {
+        padding: 12px 16px;
+        margin-top: 8px;
+        border-radius: 10px;
+      }
+
+      /* Status bar mobile */
+      .status-bar {
+        min-height: 24px !important;
+        padding: 4px 8px;
+        padding-bottom: calc(2px + env(safe-area-inset-bottom));
+        font-size: 11px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: visible; /* Ensure menus aren't clipped */
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      .status-bar::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Unified theme menu positioning for mobile */
+      .theme-menu {
+          position: fixed !important;
+          bottom: calc(28px + env(safe-area-inset-bottom)) !important;
+          right: 8px !important;
+          left: auto !important;
+          z-index: 10001 !important;
+          transform: none !important;
+          margin: 0 !important;
+      }
+
+      /* Split view - stack vertically on mobile */
+      .split-container {
+        flex-direction: column !important;
+      }
+
+      /* Hide resize handles on mobile */
+      .resize-handle,
+      .split-resize-handle,
+      .sftp-resize-handle {
+        display: none !important;
+      }
+
+      .editor-pane.primary-pane {
+        flex: 2;
+        min-height: 0;
+      }
+
+      .editor-pane.secondary-pane {
+        border-left: none;
+        border-top: 2px solid var(--border-color);
+        min-height: 150px;
+        flex: 1;
+      }
+
+      /* Git panel mobile */
+      .git-panel {
+        max-height: 50vh;
+      }
+
+      .git-panel-footer {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px;
+      }
+
+      .git-panel-footer button {
+        flex: 1;
+        min-width: 80px;
+        padding: 10px 8px;
+        font-size: 12px;
+      }
+
+      /* Quick switcher mobile */
+      .quick-switcher-overlay {
+        padding-top: 20px;
+        align-items: flex-start;
+      }
+
+      .quick-switcher {
+        width: 95%;
+        max-width: 95%;
+        margin: 0 auto;
+      }
+
+      .quick-switcher-input {
+        font-size: 16px;
+        padding: 14px 16px;
+      }
+
+      /* Settings modal mobile */
+      .settings-modal .modal {
+        max-height: 90vh;
+      }
+
+      .settings-tabs {
+        padding: 0 4px;
+      }
+
+      .settings-tab {
+        padding: 10px 14px;
+        font-size: 13px;
+      }
+      /* Selection toolbar mobile */
+      .selection-toolbar {
+        padding: 10px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      /* SFTP panel mobile */
+      .sftp-panel {
+        max-height: 45vh;
+      }
+
+      /* Asset preview mobile */
+      .asset-preview {
+        padding: 12px;
+      }
+
+      .asset-preview img {
+        max-width: 100%;
+        border-radius: 8px;
+      }
+
+      .asset-info {
+        margin-top: 16px;
+        padding: 0 12px;
+      }
+
+      /* Ensure tabs don't take too much space */
+      .tabs-container {
+        flex-shrink: 0;
+        min-height: 0; /* Changed from 40px to hide when empty */
+      }
+      .tabs-container:empty {
+        display: none;
+      }
+
+      /* Status bar mobile */
+      .status-bar {
+        flex-shrink: 0;
+      }
+
+      /* Markdown preview mobile */
+      .markdown-body {
+        padding: 20px 16px;
+        font-size: 15px;
+      }
+
+      /* Search results mobile */
+      .search-result-file {
+        padding: 10px 12px;
+      }
+
+      .search-result-match {
+        padding: 8px 12px 8px 36px;
+      }
+
+      /* Global search in sidebar mobile adjustments */
+      #view-search .search-container {
+        padding: 12px;
+      }
+
+      #global-search-input,
+      #global-replace-input {
+        font-size: 16px;
+      }
+
+      /* CodeMirror mobile optimizations */
+      .CodeMirror {
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      /* Prevent text zoom on iOS */
+      input, textarea, select {
+        font-size: 16px;
+      }
+
+      /* Touch targets — minimum 44px for all interactive small buttons */
+      .sidebar-header-btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .selection-btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .git-panel-btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .tab-close {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
+      }
+
+      .search-case-btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .toolbar-btn.small-btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      #btn-content-search {
+        min-width: 44px !important;
+        min-height: 44px !important;
+      }
+
+      /* Prevent iOS font-size zoom on blueprint form search */
+      .bf-search-input {
+        font-size: 16px !important;
+      }
+
+      /* Git settings inputs — prevent iOS font-size zoom */
+      .git-settings-input {
+        font-size: 16px;
+      }
+
+      /* Welcome screen shortcuts — stack on narrow screens */
+      .welcome-shortcuts {
+        overflow-x: hidden;
+      }
+
+      .shortcut-item {
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .shortcut-key {
+        min-width: auto;
+      }
+
+      /* CodeMirror — slightly larger font on mobile for legibility */
+      .CodeMirror {
+        font-size: 15px;
+      }
+
+      /* Global search hover actions — always visible on touch (no hover state) */
+      .match-hover-actions {
+        opacity: 1 !important;
+      }
+
+      .search-action-btn {
+        opacity: 1 !important;
+      }
+    }
+
+    /* Mobile shortcuts overlay - additional mobile styles */
+    @media (max-width: 768px) {
+      .shortcuts-modal {
+        width: 95%;
+        max-height: 90vh;
+      }
+
+      .shortcuts-header {
+        padding: 16px 20px;
+      }
+
+      .shortcuts-header h2 {
+        font-size: 18px;
+      }
+
+      .shortcuts-body {
+        padding: 20px;
+      }
+
+      .shortcut-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .shortcut-desc {
+        text-align: left;
+      }
+    }
+
+    /* Small Mobile Styles (max-width: 380px) */
+    @media (max-width: 380px) {
+      .toolbar {
+        min-height: 38px;
+        max-height: 40px;
+      }
+
+      .toolbar-btn {
+        min-width: 30px;
+        height: 30px;
+      }
+
+      .toolbar-btn .material-icons {
+        font-size: 16px;
+      }
+
+      /* Hide more items on very small screens */
+      #btn-validate,
+      #btn-show-hidden,
+      #btn-collapse-all-folders,
+      #btn-save-all,
+      #btn-format {
+        display: none;
+      }
+
+      .tab {
+        min-width: 60px;
+        max-width: 120px;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+
+      .sidebar {
+        width: 90vw;
+        min-width: 240px;
+      }
+
+      .tree-item {
+        padding: 10px 8px;
+        font-size: 13px;
+      }
+
+      .modal-title {
+        font-size: 16px;
+      }
+
+      .ai-sidebar {
+        width: 95vw;
+      }
+    }
+
+    /* Landscape mode on mobile - optimize for short height */
+    @media (max-width: 768px) and (max-height: 500px) and (orientation: landscape) {
+      .toolbar {
+        min-height: 38px;
+      }
+
+      .toolbar-btn {
+        min-width: 32px;
+        height: 32px;
+      }
+
+      .tab {
+        height: 36px;
+        min-height: 36px;
+      }
+
+      .status-bar {
+        min-height: 22px;
+        font-size: 10px;
+      }
+
+      /* Sidebar takes full height in landscape */
+      .sidebar {
+        max-width: 280px;
+      }
+
+      /* Git panel smaller in landscape */
+      .git-panel {
+        max-height: 40vh;
+      }
+
+      /* Modal smaller in landscape */
+      .modal {
+        max-height: 80vh;
+      }
+
+      .modal-body {
+        max-height: 50vh;
+      }
+
+      /* Reduce padding in landscape */
+      .tree-item {
+        padding: 8px 10px;
+        min-height: 40px;
+      }
+    }

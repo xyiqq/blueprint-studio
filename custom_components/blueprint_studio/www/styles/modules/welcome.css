@@ -1,0 +1,96 @@
+    /* Welcome screen */
+    .welcome-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .welcome-screen .material-icons {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .welcome-screen h2 {
+      font-weight: 400;
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .welcome-screen p {
+      font-size: 14px;
+    }
+
+    .welcome-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+    .welcome-actions .btn-primary,
+    .welcome-actions .btn-secondary {
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 500;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .welcome-actions .btn-primary {
+      background: var(--accent-color);
+      color: white;
+    }
+    .welcome-actions .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .welcome-actions .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+    .welcome-actions .btn-secondary:hover {
+      background: var(--bg-hover);
+    }
+
+    .welcome-shortcuts {
+      margin-top: 24px;
+      text-align: left;
+    }
+
+    .welcome-shortcuts h3 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      color: var(--text-secondary);
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .shortcut-key {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      margin-right: 12px;
+      min-width: 70px;
+      text-align: center;
+      font-size: 12px;
+    }

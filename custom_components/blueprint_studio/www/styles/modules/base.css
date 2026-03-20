@@ -1,0 +1,330 @@
+/* Bundled Material Icons */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/local/blueprint_studio/fonts/material-icons.woff2') format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+
+/* Theme variables will be set dynamically via JavaScript */
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #252526;
+      --bg-tertiary: #2d2d30;
+      --bg-hover: #3c3c3c;
+      --bg-active: #094771;
+      --text-primary: #cccccc;
+      --text-secondary: #858585;
+      --text-muted: #6e6e6e;
+      --border-color: #3c3c3c;
+      --accent-color: #0e639c;
+      --accent-hover: #1177bb;
+      --success-color: #4ec9b0;
+      --warning-color: #dcdcaa;
+      --error-color: #f14c4c;
+      --icon-folder: #dcb67a;
+      --icon-yaml: #cb4b16;
+      --icon-json: #cbcb41;
+      --icon-python: #3572a5;
+      --icon-js: #f1e05a;
+      --icon-default: #858585;
+      --modal-bg: #2d2d30;
+      --input-bg: #3c3c3c;
+      --shadow-color: rgba(0, 0, 0, 0.5);
+      --cm-theme: material-darker;
+      --safe-area-top: env(safe-area-inset-top, 0px);
+      --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* Utility */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Light theme override - will be applied by JS */
+    [data-theme="light"] {
+      /* Variables will be set by JavaScript */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      height: 100dvh; /* Dynamic viewport height for mobile */
+      overflow: hidden;
+      width: 100%;
+      position: fixed; /* Prevent bouncy scroll on iOS */
+      inset: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* Pulsing Animation - Used for all loading indicators */
+    @keyframes pulse-opacity {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    .pulsing {
+        animation: pulse-opacity 1.5s infinite ease-in-out;
+        pointer-events: none; /* Prevent clicking while pulsing */
+        cursor: wait !important;
+    }
+
+    .spinning {
+      animation: spin 1s linear infinite;
+    }
+
+    .spinning-centered {
+      animation: spin-centered 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes spin-centered {
+      from { transform: translateY(-50%) rotate(0deg); }
+      to { transform: translateY(-50%) rotate(360deg); }
+    }
+
+    /* no-select utility */
+    .no-select {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Loading Skeletons */
+    .skeleton {
+        background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-hover) 50%, var(--bg-tertiary) 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s infinite;
+        border-radius: 4px;
+    }
+
+    @keyframes skeleton-loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .file-skeleton {
+        height: 24px;
+        margin: 8px 12px;
+    }
+
+    /* Scrollbar base styles */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* Range Slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: var(--accent-hover);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-tertiary);
+      transition: .3s;
+      border-radius: 24px;
+      border: 1px solid var(--border-color);
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
+      background-color: var(--text-primary);
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+      background-color: white;
+    }
+
+    /* File Tree Compact Mode */
+    body.file-tree-compact .tree-item {
+      padding-top: 4px;
+      padding-bottom: 4px;
+      padding-right: 8px;
+      min-height: 28px;
+    }
+
+    body.file-tree-compact .tree-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    body.file-tree-compact .tree-icon .material-icons {
+      font-size: 16px;
+    }
+
+    body.file-tree-compact .tree-name {
+      font-size: 13px;
+    }
+
+    /* File Tree No Icons */
+    body.file-tree-no-icons .tree-icon {
+      display: none;
+    }
+
+    /* Tab Position Left */
+    body[data-tab-position="left"] .tabs-container {
+      flex-direction: column;
+      width: 150px;
+      height: 100%;
+      border-right: 1px solid var(--border-color);
+      border-bottom: none;
+    }
+
+    body[data-tab-position="left"] .editor-area {
+      flex-direction: row;
+    }
+
+    body[data-tab-position="left"] .tab {
+      border-right: none;
+      border-bottom: 1px solid var(--border-color);
+      min-width: unset;
+      max-width: unset;
+    }
+
+    /* Hide Git elements when Git integration is disabled */
+    body.git-disabled .git-toolbar-group,
+    body.git-disabled #git-panel {
+      display: none !important;
+    }
+
+    /* Activity Bar SFTP Hide logic */
+    #activity-sftp.hidden {
+        display: none !important;
+    }
+
+    /* GitHub Octicons support */
+    .octicon {
+      display: inline-block;
+      vertical-align: middle;
+      fill: currentColor;
+    }
+
+    .rotated {
+        transform: rotate(90deg);
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 4px 8px;
+      font-family: ui-monospace, 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      min-width: 24px;
+      text-align: center;
+    }

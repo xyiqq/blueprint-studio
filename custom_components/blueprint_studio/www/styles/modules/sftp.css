@@ -1,0 +1,95 @@
+    /* ─── SFTP View ─────────────────────────────────────────────────────── */
+    .sftp-panel-body {
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* SFTP Header Dropdown */
+    .sftp-header-select {
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        outline: none;
+        max-width: 100%;
+        padding: 2px 4px;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+
+    .sftp-header-select:hover {
+        background: var(--bg-hover);
+    }
+
+    .sftp-header-select option {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        text-transform: none;
+        font-weight: normal;
+    }
+
+    /* SFTP Dropdown */
+    .sftp-dropdown-container {
+        display: flex;
+        gap: 4px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        align-items: center;
+    }
+
+    .sftp-select {
+        flex: 1;
+        padding: 6px 8px;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        color: var(--text-primary);
+        font-size: 13px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .sftp-select:focus {
+        border-color: var(--accent-color);
+    }
+
+    .sftp-connection-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      user-select: none;
+    }
+    .sftp-connection-item:hover { background: var(--bg-hover); }
+    .sftp-connection-item.active { color: var(--accent-color); }
+    .sftp-conn-label { font-weight: 500; }
+    .sftp-connection-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .sftp-connection-item:hover .sftp-connection-actions { opacity: 1; }
+    .sftp-breadcrumb {
+      font-size: 11px;
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .sftp-crumb:hover { color: var(--accent-color); text-decoration: underline; }
+    /* #sftp-file-tree reuses .tree-item / .tree-icon / .tree-name from the local tree */
+    /* Connection / Edit dialog — reuses standard .modal-overlay / .modal classes */
+    /* ─────────────────────────────────────────────────────────────────────── */

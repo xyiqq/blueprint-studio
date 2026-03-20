@@ -1,0 +1,27 @@
+{
+  "name": "Blueprint Studio",
+  "short_name": "Studio",
+  "description": "Modern file editor for Home Assistant",
+  "start_url": "/blueprint_studio/",
+  "scope": "/blueprint_studio/",
+  "display": "standalone",
+  "background_color": "#1e1e1e",
+  "theme_color": "#0e639c",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/local/blueprint_studio/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/local/blueprint_studio/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": []
+}

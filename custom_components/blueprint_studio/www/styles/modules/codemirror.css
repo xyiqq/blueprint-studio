@@ -1,0 +1,372 @@
+    .CodeMirror {
+      height: 100% !important;
+      width: 100% !important;
+      font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .CodeMirror-gutters {
+      background: var(--cm-gutter-bg, var(--bg-secondary)) !important;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .CodeMirror-linenumber {
+      color: var(--cm-line-number-color, var(--text-muted)) !important;
+      padding: 0 8px;
+    }
+
+    .CodeMirror-foldmarker {
+      color: var(--cm-fold-color, var(--text-muted)) !important;
+      cursor: pointer;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      padding: 0 4px;
+      margin: 0 4px;
+      font-size: 0.9em;
+      vertical-align: middle;
+      font-family: inherit !important;
+    }
+
+    /* Shared styles for fold markers */
+    .CodeMirror-foldgutter-open,
+    .CodeMirror-foldgutter-folded {
+      color: var(--cm-fold-color, var(--text-muted)) !important;
+      cursor: pointer;
+      font-size: 0 !important;
+      line-height: 1;
+      width: 100%;
+      height: 100%;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+    }
+
+    /* Common pseudo-element setup for the icon */
+    .CodeMirror-foldgutter-open::after,
+    .CodeMirror-foldgutter-folded::after {
+      content: "\e5cc"; /* chevron_right */
+      font-family: "Material Icons" !important;
+      font-size: 22px !important;
+      display: block;
+      width: 22px;
+      height: 22px;
+      line-height: 22px;
+      text-align: center;
+      flex-shrink: 0;
+      transition: transform 0.15s ease;
+      pointer-events: none;
+    }
+
+    /* Rotation for open state (like file tree) */
+    .CodeMirror-foldgutter-open::after {
+      transform: rotate(90deg);
+    }
+
+    /* No rotation for folded state */
+    .CodeMirror-foldgutter-folded::after {
+      transform: rotate(0deg);
+    }
+
+    .CodeMirror-activeline-background {
+      background: rgba(128, 128, 128, 0.1);
+    }
+
+    /* Enhanced Selection Highlighting */
+    .CodeMirror-selected {
+      background: rgba(58, 134, 255, 0.3) !important;
+    }
+    .CodeMirror-focused .CodeMirror-selected {
+      background: rgba(58, 134, 255, 0.5) !important;
+    }
+
+    [data-theme="light"] .CodeMirror-selected {
+      background: rgba(0, 96, 192, 0.2) !important;
+    }
+    [data-theme="light"] .CodeMirror-focused .CodeMirror-selected {
+      background: rgba(0, 96, 192, 0.4) !important;
+    }
+
+    /* Search Highlight Overlay */
+    .cm-search-match {
+        background-color: rgba(255, 255, 0, 0.4);
+        border-bottom: 2px solid rgba(255, 255, 0, 0.8);
+    }
+    [data-theme="dark"] .cm-search-match {
+        background-color: rgba(255, 215, 0, 0.2);
+        border-bottom: 2px solid rgba(255, 215, 0, 0.6);
+    }
+
+    /* Active (Selected) Search Match */
+    .cm-search-active {
+        background-color: rgba(255, 152, 0, 0.8) !important; /* Vivid Orange */
+        border: 1px solid #ff9100 !important;
+        color: #000000 !important; /* Black text for high contrast on orange */
+        font-weight: bold !important;
+    }
+    [data-theme="light"] .cm-search-active {
+        background-color: rgba(255, 140, 0, 0.6) !important;
+        border: 1px solid #e65100 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+    }
+
+    /* Autocomplete hints styling */
+    .CodeMirror-hints {
+      background: var(--modal-bg) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 4px !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif !important;
+      font-size: 13px !important;
+      max-height: 200px !important;
+      max-width: 400px !important;
+      overflow-y: auto !important;
+      opacity: 0.98 !important;
+    }
+
+    .CodeMirror-hint {
+      color: var(--text-primary) !important;
+      padding: 4px 10px !important;
+      border-radius: 3px !important;
+      margin: 1px 2px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .CodeMirror-hint-active {
+      background: var(--accent-color) !important;
+      color: white !important;
+    }
+
+    .CodeMirror-hint:hover {
+      background: var(--bg-hover) !important;
+    }
+
+    .ha-hint-type {
+      opacity: 0.5;
+      font-size: 11px;
+      margin-left: 6px;
+      font-style: italic;
+    }
+
+    .ha-hint-description {
+      opacity: 0.6;
+      font-size: 11px;
+      display: block;
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Home Assistant YAML syntax highlighting */
+    .cm-ha-include-tag,
+    .cm-ha-secret-tag,
+    .cm-ha-env-tag,
+    .cm-ha-input-tag {
+      font-weight: bold;
+      color: #c792ea;
+    }
+
+    [data-theme="light"] .cm-ha-include-tag,
+    [data-theme="light"] .cm-ha-secret-tag,
+    [data-theme="light"] .cm-ha-env-tag,
+    [data-theme="light"] .cm-ha-input-tag {
+      color: #7c4dff;
+    }
+
+    .cm-ha-domain {
+      font-weight: 600;
+      color: #82aaff;
+    }
+
+    [data-theme="light"] .cm-ha-domain {
+      color: #0066b8;
+    }
+
+    .cm-ha-key {
+      color: #c3e88d;
+    }
+
+    [data-theme="light"] .cm-ha-key {
+      color: #2e7d32;
+    }
+
+    /* Jinja Syntax Highlighting */
+    .cm-jinja-bracket {
+      color: #ffd700; /* Gold */
+      font-weight: bold;
+    }
+    [data-theme="light"] .cm-jinja-bracket {
+      color: #f57f17; /* Darker Orange */
+    }
+
+    .cm-jinja-keyword {
+      color: #ff9e64; /* Orange/Peach */
+      font-weight: bold;
+    }
+    [data-theme="light"] .cm-jinja-keyword {
+      color: #e65100; /* Deep Orange */
+    }
+
+    .cm-jinja-operator {
+      color: #89ddff; /* Light Blue */
+    }
+    [data-theme="light"] .cm-jinja-operator {
+      color: #0277bd; /* Ocean Blue */
+    }
+
+    .cm-jinja-atom {
+      color: #f78c6c; /* Coral */
+    }
+    [data-theme="light"] .cm-jinja-atom {
+      color: #bf360c;
+    }
+
+    /* Block Scope Highlight */
+    .cm-block-highlight-line {
+      background: rgba(128, 128, 128, 0.07) !important;
+      position: relative;
+    }
+
+    /* The vertical line indicator */
+    .cm-block-highlight-line::after {
+      content: "";
+      position: absolute;
+      left: var(--block-indent, 1px);
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: var(--cm-line-number-color, var(--text-muted));
+      z-index: 10;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .cm-block-highlight-start::after {
+      top: 100%;
+    }
+
+    .cm-block-highlight-end::after {
+      bottom: 2px;
+      border-bottom-left-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
+
+    /* Whitespace Visualization */
+    .cm-whitespace-space {
+      position: relative;
+    }
+
+    .cm-whitespace-space::after {
+      content: "·";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      text-align: center;
+      color: var(--text-muted);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .cm-whitespace-tab {
+      position: relative;
+    }
+
+    .cm-whitespace-indent-start, .cm-whitespace-indent-end {
+      position: relative;
+    }
+
+    /* The line part of the arrow */
+    .cm-whitespace-indent-start::before {
+      content: "";
+      position: absolute;
+      left: 20%;
+      right: -50%; /* Span across into the next span */
+      top: 50%;
+      height: 1px;
+      background: var(--text-muted);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* The arrowhead part */
+    .cm-whitespace-indent-end::after {
+      content: "";
+      position: absolute;
+      right: 15%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 2.5px solid transparent;
+      border-bottom: 2.5px solid transparent;
+      border-left: 3.5px solid var(--text-muted);
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Whitespace Visualization */
+    .cm-whitespace-space {
+      background-image: radial-gradient(circle, var(--text-muted) 1.5px, transparent 1.5px);
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.6;
+    }
+
+    .cm-whitespace-tab {
+      /* Arrow-like line */
+      background: linear-gradient(to right, transparent, var(--text-muted) 50%, transparent);
+      background-size: 80% 1px;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.4;
+    }
+
+    /* Merge View Styles */
+    .CodeMirror-merge {
+        height: 100%;
+        border: none;
+    }
+    .CodeMirror-merge-pane {
+        height: 100%;
+    }
+    .CodeMirror-merge .CodeMirror {
+        height: 100%;
+    }
+    /* Hide the "connect" arrows/canvas if they are distracting or broken layout */
+    /* .CodeMirror-merge-gap canvas { display: none; } */
+
+    /* Dark Mode Merge View Contrast Fixes */
+    body[data-theme='dark'] .CodeMirror-merge-l-chunk { background: rgba(255, 80, 80, 0.2); }
+    body[data-theme='dark'] .CodeMirror-merge-l-chunk-start { border-top: 1px solid rgba(255, 80, 80, 0.4); }
+    body[data-theme='dark'] .CodeMirror-merge-l-chunk-end { border-bottom: 1px solid rgba(255, 80, 80, 0.4); }
+
+    body[data-theme='dark'] .CodeMirror-merge-r-chunk { background: rgba(80, 255, 80, 0.2); }
+    body[data-theme='dark'] .CodeMirror-merge-r-chunk-start { border-top: 1px solid rgba(80, 255, 80, 0.4); }
+    body[data-theme='dark'] .CodeMirror-merge-r-chunk-end { border-bottom: 1px solid rgba(80, 255, 80, 0.4); }
+
+    body[data-theme='dark'] .CodeMirror-merge-l-connect { fill: rgba(255, 80, 80, 0.2); stroke: rgba(255, 80, 80, 0.4); }
+    body[data-theme='dark'] .CodeMirror-merge-r-connect { fill: rgba(80, 255, 80, 0.2); stroke: rgba(80, 255, 80, 0.4); }
+
+    /* Merge Gap Dark Mode */
+    body[data-theme='dark'] .CodeMirror-merge-gap {
+        background-color: var(--bg-primary);
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+    }
+
+    /* Scroll Lock Icon Size */
+    .CodeMirror-merge-scrolllock {
+        font-size: 20px !important;
+        width: 24px !important;
+        height: 24px !important;
+        cursor: pointer;
+    }
