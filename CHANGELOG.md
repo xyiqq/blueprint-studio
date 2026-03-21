@@ -756,6 +756,8 @@ Bring AI intelligence directly into your Home Assistant workflow with flexible p
 
 
 ## Version History
+- **2.4.1** - Bug Fixes
+- **2.4.0** - PWA Power, Blueprint Magic, SFTP & SSH Supercharged
 - **2.3.0** - Terminal Integration & Workspace Persistence
 - **2.2.2** - Feature & Fix Update (31 Languages)
 - **2.2.1** - Editor & UI Enhancement Suite
@@ -778,7 +780,9 @@ Bring AI intelligence directly into your Home Assistant workflow with flexible p
 - **1.2.0** - GitHub Integration, Pin Favorites & Auto-Refresh
 - **1.0.0** - First stable release
 
-[Unreleased]: https://github.com/soulripper13/blueprint-studio/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/soulripper13/blueprint-studio/compare/v2.4.1...HEAD
+[2.4.1]: https://github.com/soulripper13/blueprint-studio/releases/tag/v2.4.1
+[2.4.0]: https://github.com/soulripper13/blueprint-studio/releases/tag/v2.4.0
 [2.3.0]: https://github.com/soulripper13/blueprint-studio/releases/tag/v2.3.0
 [2.2.2]: https://github.com/soulripper13/blueprint-studio/releases/tag/v2.2.2
 [2.2.1]: https://github.com/soulripper13/blueprint-studio/releases/tag/v2.2.1
