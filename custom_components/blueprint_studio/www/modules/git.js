@@ -318,6 +318,7 @@ export function updateGitPanel() {
         if (gitState.ahead > 0) {
             const pushBtn = document.createElement("button");
             pushBtn.className = "git-panel-btn git-sync-indicator";
+            pushBtn.id = "btn-git-push-sync";
             pushBtn.title = `${gitState.ahead} commits to push`;
             pushBtn.innerHTML = `<span class="material-icons" style="font-size: 18px; color: var(--success-color);">arrow_upward</span><span style="font-size: 10px; margin-left: -2px; font-weight: bold; color: var(--success-color);">${gitState.ahead}</span>`;
             actions.insertBefore(pushBtn, actions.firstChild);
@@ -325,6 +326,7 @@ export function updateGitPanel() {
         if (gitState.behind > 0) {
             const pullBtn = document.createElement("button");
             pullBtn.className = "git-panel-btn git-sync-indicator";
+            pullBtn.id = "btn-git-pull-sync";
             pullBtn.title = `${gitState.behind} commits to pull`;
             pullBtn.innerHTML = `<span class="material-icons" style="font-size: 18px; color: var(--warning-color);">arrow_downward</span><span style="font-size: 10px; margin-left: -2px; font-weight: bold; color: var(--warning-color);">${gitState.behind}</span>`;
             actions.insertBefore(pullBtn, actions.firstChild);
