@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-03-21
+
+### Fixed
+
+- **Git panel: file selection not registering on checkbox click** — Clicking directly on a checkbox in the Git changes panel did not register the selection, causing a "No files selected" toast when attempting to stage. The click handler correctly skipped the checkbox element itself, but no `change` event listener existed to catch direct checkbox interactions. A `change` listener has been added to mirror the same pattern already working in the Gitea panel.
+
+- **Git panel: push/pull sync buttons non-functional** — After committing, the green `arrow_upward` and orange `arrow_downward` indicator buttons in the panel actions bar did nothing when clicked. The buttons were created dynamically on each panel refresh without any event listener attached. Event delegation has been added to the git panel to handle clicks on `btn-git-push-sync` and `btn-git-pull-sync`. Additionally, the `git.js` code path was missing the `id` attributes on these buttons entirely, preventing the delegation from matching them.
+
+- **Gitea panel: push/pull sync buttons non-functional** — The same issue affected the Gitea changes panel. The dynamically created `btn-gitea-push-sync` and `btn-gitea-pull-sync` buttons had no click handlers. Event delegation has been added to the Gitea panel to wire these buttons to `giteaPush` and `giteaPull` respectively.
+
+- **Validator: automations with `use_blueprint:` incorrectly routed to blueprint checker** — Any automation file containing `use_blueprint:` triggered the blueprint validator instead of the standard YAML validator, because the file-type detector matched the substring `blueprint:` inside `use_blueprint:`. This caused a false "Blueprint must be a YAML mapping (dict)" error toast on valid automation files. The detection now uses a regex that only matches `blueprint:` as a standalone root-level key, not as part of `use_blueprint:`.
+
+---
+
 ## [2.4.0] - 2026-03-20
 
 ### Blueprint Studio 2.4.0 — PWA Power, Blueprint Magic, SFTP & SSH Supercharged
