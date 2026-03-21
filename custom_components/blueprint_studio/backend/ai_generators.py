@@ -28,16 +28,41 @@ def build_conditions_yaml(conditions: list[dict], ind: str) -> str:
 
     cond_lines = [f"{ind}  conditions:"]
     for cond in conditions:
-        if cond.get("condition") == "state":
+        ctype = cond.get("condition")
+        if ctype == "state":
             cond_lines.append(f"{ind}  - condition: state")
             cond_lines.append(f"{ind}    entity_id: {cond['entity_id']}")
             cond_lines.append(f"{ind}    state: '{cond['state']}'")
-        elif cond.get("condition") == "time":
+        elif ctype == "time":
             cond_lines.append(f"{ind}  - condition: time")
             if "weekday" in cond:
                 cond_lines.append(f"{ind}    weekday:")
                 for day in cond["weekday"]:
                     cond_lines.append(f"{ind}    - {day}")
+            if "after" in cond:
+                cond_lines.append(f"{ind}    after: '{cond['after']}'")
+            if "before" in cond:
+                cond_lines.append(f"{ind}    before: '{cond['before']}'")
+        elif ctype == "numeric_state":
+            cond_lines.append(f"{ind}  - condition: numeric_state")
+            cond_lines.append(f"{ind}    entity_id: {cond['entity_id']}")
+            if "above" in cond:
+                cond_lines.append(f"{ind}    above: {cond['above']}")
+            if "below" in cond:
+                cond_lines.append(f"{ind}    below: {cond['below']}")
+        elif ctype == "zone":
+            cond_lines.append(f"{ind}  - condition: zone")
+            cond_lines.append(f"{ind}    entity_id: {cond['entity_id']}")
+            cond_lines.append(f"{ind}    zone: {cond['zone']}")
+        elif ctype in ("or", "and"):
+            cond_lines.append(f"{ind}  - condition: {ctype}")
+            cond_lines.append(f"{ind}    conditions:")
+            for sub in cond.get("conditions", []):
+                sub_type = sub.get("condition")
+                if sub_type == "state":
+                    cond_lines.append(f"{ind}    - condition: state")
+                    cond_lines.append(f"{ind}      entity_id: {sub['entity_id']}")
+                    cond_lines.append(f"{ind}      state: '{sub['state']}'")
 
     return "\n".join(cond_lines)
 
@@ -101,28 +126,43 @@ def generate_single_intent_automation(uid, name, domain, actions, entities, trig
 
     action_name = actions.get(action_type, "turn_on")
 
-    if trigger_info["type"] == "time":
-        time_val = trigger_info["times"][0] if trigger_info["times"] else "12:00:00"
-        triggers_yaml = f"""{ind}  triggers:
-{ind}  - trigger: time
-{ind}    at: '{time_val}'"""
-    elif trigger_info["type"] == "state":
-        triggers_yaml = f"""{ind}  triggers:
-{ind}  - trigger: state
-{ind}    entity_id: {trigger_info['entity_id']}
-{ind}    to: '{trigger_info['to']}'"""
-    elif trigger_info["type"] == "numeric_state":
+    ttype = trigger_info.get("type", "time")
+    if ttype == "sun":
+        triggers_yaml = build_sun_trigger_yaml(trigger_info, ind)
+    elif ttype == "time_pattern":
+        triggers_yaml = build_time_pattern_trigger_yaml(trigger_info, ind)
+    elif ttype == "zone":
+        triggers_yaml = build_zone_trigger_yaml(trigger_info, ind)
+    elif ttype == "webhook":
+        triggers_yaml = build_webhook_trigger_yaml(trigger_info, ind)
+    elif ttype == "mqtt":
+        triggers_yaml = build_mqtt_trigger_yaml(trigger_info, ind)
+    elif ttype == "time":
+        time_val = trigger_info["times"][0] if trigger_info.get("times") else "12:00:00"
+        triggers_yaml = f"{ind}  triggers:\n{ind}  - trigger: time\n{ind}    at: '{time_val}'"
+    elif ttype == "state":
+        triggers_yaml = (
+            f"{ind}  triggers:\n"
+            f"{ind}  - trigger: state\n"
+            f"{ind}    entity_id: {trigger_info['entity_id']}\n"
+            f"{ind}    to: '{trigger_info['to']}'"
+        )
+    elif ttype == "numeric_state":
         threshold_key = "above" if "above" in trigger_info else "below"
         threshold_val = trigger_info[threshold_key]
-        triggers_yaml = f"""{ind}  triggers:
-{ind}  - trigger: numeric_state
-{ind}    entity_id: {trigger_info['entity_id']}
-{ind}    {threshold_key}: {threshold_val}"""
+        triggers_yaml = (
+            f"{ind}  triggers:\n"
+            f"{ind}  - trigger: numeric_state\n"
+            f"{ind}    entity_id: {trigger_info['entity_id']}\n"
+            f"{ind}    {threshold_key}: {threshold_val}"
+        )
     else:
-        triggers_yaml = f"""{ind}  triggers:
-{ind}  - trigger: state
-{ind}    entity_id: binary_sensor.motion_sensor
-{ind}    to: 'on'"""
+        triggers_yaml = (
+            f"{ind}  triggers:\n"
+            f"{ind}  - trigger: state\n"
+            f"{ind}    entity_id: {trigger_info.get('entity_id', 'binary_sensor.your_sensor')}\n"
+            f"{ind}    to: 'on'"
+        )
 
     conditions_yaml = build_conditions_yaml(conditions, ind)
     data_block = build_data_block(values, domain, ind)
@@ -142,16 +182,169 @@ def generate_single_intent_automation(uid, name, domain, actions, entities, trig
             actions_yaml_lines.append(f"{ind}    data:")
             actions_yaml_lines.append(f"{ind}      message: \"{add_action['message']}\"")
         elif add_action["type"] == "delay":
+            duration_parts = add_action["duration"].split(":")
+            hours, minutes, seconds = int(duration_parts[0]), int(duration_parts[1]), int(duration_parts[2])
             actions_yaml_lines.append(f"{ind}  - delay:")
-            actions_yaml_lines.append(f"{ind}      hours: 0")
-            actions_yaml_lines.append(f"{ind}      minutes: 0")
-            actions_yaml_lines.append(f"{ind}      seconds: {add_action['duration'].split(':')[-1]}")
+            actions_yaml_lines.append(f"{ind}      hours: {hours}")
+            actions_yaml_lines.append(f"{ind}      minutes: {minutes}")
+            actions_yaml_lines.append(f"{ind}      seconds: {seconds}")
+        elif add_action["type"] == "scene":
+            actions_yaml_lines.append(f"{ind}  - action: scene.turn_on")
+            actions_yaml_lines.append(f"{ind}    metadata: {{}}")
+            actions_yaml_lines.append(f"{ind}    target:")
+            actions_yaml_lines.append(f"{ind}      entity_id: {add_action['scene_id']}")
+        elif add_action["type"] == "script":
+            actions_yaml_lines.append(f"{ind}  - action: script.turn_on")
+            actions_yaml_lines.append(f"{ind}    metadata: {{}}")
+            actions_yaml_lines.append(f"{ind}    target:")
+            actions_yaml_lines.append(f"{ind}      entity_id: {add_action['script_id']}")
+        elif add_action["type"] == "wait_template":
+            actions_yaml_lines.append(f"{ind}  - wait_template: \"{add_action['template']}\"")
+            actions_yaml_lines.append(f"{ind}    timeout: '{add_action.get('timeout', '00:05:00')}'")
+            actions_yaml_lines.append(f"{ind}    continue_on_timeout: true")
+        elif add_action["type"] == "repeat":
+            actions_yaml_lines.append(f"{ind}  - repeat:")
+            actions_yaml_lines.append(f"{ind}      count: {add_action['count']}")
+            actions_yaml_lines.append(f"{ind}      sequence:")
+            actions_yaml_lines.append(f"{ind}      - action: {domain}.{action_name}")
+            actions_yaml_lines.append(f"{ind}        metadata: {{}}")
+            actions_yaml_lines.append(f"{ind}        {target_yaml}")
+            actions_yaml_lines.append(f"{ind}        data: {{}}")
 
     actions_yaml = "\n".join(actions_yaml_lines)
 
     return f"""{hdr}- id: '{uid}'
 {ind}  alias: {name}
 {ind}  description: Automated control
+{triggers_yaml}
+{conditions_yaml}
+{actions_yaml}
+{ind}  mode: single"""
+
+
+def build_sun_trigger_yaml(trigger_info: dict, ind: str) -> str:
+    """Build sun trigger YAML block."""
+    event = trigger_info.get("event", "sunset")
+    offset = trigger_info.get("offset", "+00:00:00")
+    lines = [
+        f"{ind}  triggers:",
+        f"{ind}  - trigger: sun",
+        f"{ind}    event: {event}",
+    ]
+    if offset and offset not in ("+00:00:00", "-00:00:00"):
+        lines.append(f"{ind}    offset: '{offset}'")
+    return "\n".join(lines)
+
+
+def build_time_pattern_trigger_yaml(trigger_info: dict, ind: str) -> str:
+    """Build time_pattern trigger YAML block."""
+    lines = [
+        f"{ind}  triggers:",
+        f"{ind}  - trigger: time_pattern",
+    ]
+    for key in ("hours", "minutes", "seconds"):
+        if key in trigger_info:
+            lines.append(f"{ind}    {key}: '{trigger_info[key]}'")
+    return "\n".join(lines)
+
+
+def build_zone_trigger_yaml(trigger_info: dict, ind: str) -> str:
+    """Build zone trigger YAML block."""
+    return "\n".join([
+        f"{ind}  triggers:",
+        f"{ind}  - trigger: zone",
+        f"{ind}    entity_id: {trigger_info.get('entity_id', 'person.your_person')}",
+        f"{ind}    zone: {trigger_info.get('zone', 'zone.home')}",
+        f"{ind}    event: {trigger_info.get('event', 'enter')}",
+    ])
+
+
+def build_webhook_trigger_yaml(trigger_info: dict, ind: str) -> str:
+    """Build webhook trigger YAML block."""
+    return "\n".join([
+        f"{ind}  triggers:",
+        f"{ind}  - trigger: webhook",
+        f"{ind}    webhook_id: {trigger_info.get('webhook_id', 'blueprint_studio_webhook')}",
+        f"{ind}    allowed_methods:",
+        f"{ind}    - POST",
+        f"{ind}    local_only: true",
+    ])
+
+
+def build_mqtt_trigger_yaml(trigger_info: dict, ind: str) -> str:
+    """Build MQTT trigger YAML block."""
+    return "\n".join([
+        f"{ind}  triggers:",
+        f"{ind}  - trigger: mqtt",
+        f"{ind}    topic: {trigger_info.get('topic', 'homeassistant/sensor/your_device/state')}",
+    ])
+
+
+def generate_multi_domain_automation(uid, name, domain_intents, trigger_info, conditions, ind, hdr):
+    """Generate automation with actions across multiple domains.
+
+    domain_intents: list of {domain, entities, action} dicts
+    """
+    # Build trigger YAML based on trigger type
+    ttype = trigger_info.get("type", "time")
+    if ttype == "sun":
+        triggers_yaml = build_sun_trigger_yaml(trigger_info, ind)
+    elif ttype == "time_pattern":
+        triggers_yaml = build_time_pattern_trigger_yaml(trigger_info, ind)
+    elif ttype == "zone":
+        triggers_yaml = build_zone_trigger_yaml(trigger_info, ind)
+    elif ttype == "webhook":
+        triggers_yaml = build_webhook_trigger_yaml(trigger_info, ind)
+    elif ttype == "mqtt":
+        triggers_yaml = build_mqtt_trigger_yaml(trigger_info, ind)
+    elif ttype == "time":
+        time_val = trigger_info.get("times", ["12:00:00"])[0]
+        triggers_yaml = f"{ind}  triggers:\n{ind}  - trigger: time\n{ind}    at: '{time_val}'"
+    elif ttype == "state":
+        triggers_yaml = (
+            f"{ind}  triggers:\n"
+            f"{ind}  - trigger: state\n"
+            f"{ind}    entity_id: {trigger_info.get('entity_id', 'binary_sensor.your_sensor')}\n"
+            f"{ind}    to: '{trigger_info.get('to', 'on')}'"
+        )
+    elif ttype == "numeric_state":
+        threshold_key = "above" if "above" in trigger_info else "below"
+        triggers_yaml = (
+            f"{ind}  triggers:\n"
+            f"{ind}  - trigger: numeric_state\n"
+            f"{ind}    entity_id: {trigger_info.get('entity_id', 'sensor.your_sensor')}\n"
+            f"{ind}    {threshold_key}: {trigger_info[threshold_key]}"
+        )
+    else:
+        triggers_yaml = f"{ind}  triggers:\n{ind}  - trigger: state\n{ind}    entity_id: binary_sensor.your_sensor\n{ind}    to: 'on'"
+
+    conditions_yaml = build_conditions_yaml(conditions, ind)
+
+    # Build multi-domain action list
+    action_lines = [f"{ind}  actions:"]
+    for intent in domain_intents:
+        domain = intent["domain"]
+        action = intent["action"]
+        entities = intent["entities"]
+
+        if len(entities) == 1:
+            target_block = f"target:\n{ind}      entity_id: {entities[0]}"
+        else:
+            entity_list = "\n".join([f"{ind}        - {e}" for e in entities])
+            target_block = f"target:\n{ind}      entity_id:\n{entity_list}"
+
+        action_lines.append(f"{ind}  - action: {domain}.{action}")
+        action_lines.append(f"{ind}    metadata: {{}}")
+        action_lines.append(f"{ind}    {target_block}")
+        action_lines.append(f"{ind}    data: {{}}")
+
+    actions_yaml = "\n".join(action_lines)
+
+    domain_summary = " + ".join(i["domain"] for i in domain_intents)
+
+    return f"""{hdr}- id: '{uid}'
+{ind}  alias: {name}
+{ind}  description: Multi-domain automation ({domain_summary})
 {triggers_yaml}
 {conditions_yaml}
 {actions_yaml}

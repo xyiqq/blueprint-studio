@@ -81,8 +81,9 @@ def _detect_yaml_variant(file_path: str, content: str) -> str:
             if 'esphome:' in content:
                 return 'yaml-esphome'
 
-        # Blueprint detection — check before filename-based HA detection
-        if 'blueprint:' in content:
+        # Blueprint detection — only trigger on standalone `blueprint:` key at the
+        # start of a line, not on `use_blueprint:` inside automation files.
+        if re.search(r'(?:^|\n)blueprint\s*:', content):
             return 'yaml-blueprint'
 
         if filename and any(x in filename for x in ['automation', 'script', 'scene', 'schedule']):

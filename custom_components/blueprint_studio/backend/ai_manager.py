@@ -16,11 +16,12 @@ from .ai_validators import check_syntax as _check_syntax, check_yaml, check_jinj
 from .ai_nlp import (
     detect_domain, extract_area, find_best_entities,
     extract_conditions, extract_values, detect_additional_actions,
-    detect_trigger_type, extract_automation_name,
+    detect_trigger_type, extract_automation_name, find_multi_domain_entities,
 )
 from .ai_generators import (
     build_data_block, build_conditions_yaml, build_target_yaml,
     generate_multi_intent_automation, generate_single_intent_automation,
+    generate_multi_domain_automation, build_sun_trigger_yaml,
     get_scene_defaults, get_scene_icon, get_scene_description,
     get_script_description,
 )
@@ -393,17 +394,65 @@ Example modern automation:
             # ===== AUTOMATION GENERATION =====
             multi_intent = ("on" in query_lower and "off" in query_lower) or ("open" in query_lower and "close" in query_lower)
 
-            if multi_intent and trigger_info["type"] == "time" and len(trigger_info["times"]) >= 2:
+            # Check for multi-domain query first
+            domain_intents = find_multi_domain_entities(self.hass, query)
+
+            if domain_intents:
+                code = generate_multi_domain_automation(
+                    uid, name, domain_intents, trigger_info, conditions, ind, hdr
+                )
+                domains_str = " and ".join(i["domain"] for i in domain_intents)
+                response_msg = (
+                    f"Generated Multi-Domain Automation:\n\n```yaml\n{code}\n```\n\n"
+                    f"💡 Controls **{domains_str}** — adjust entity IDs as needed."
+                )
+            elif trigger_info["type"] == "sun":
+                code = generate_single_intent_automation(
+                    uid, name, domain, actions, entities, trigger_info, values, conditions, ind, hdr, query_lower,
+                    detect_additional_actions
+                )
+                event = trigger_info.get("event", "sunset")
+                offset = trigger_info.get("offset", "+00:00:00")
+                offset_note = f" with offset `{offset}`" if offset not in ("+00:00:00", "-00:00:00") else ""
+                response_msg = (
+                    f"Generated Modern Automation:\n\n```yaml\n{code}\n```\n\n"
+                    f"☀️ Triggered at **{event}**{offset_note}."
+                )
+            elif trigger_info["type"] == "time_pattern":
+                code = generate_single_intent_automation(
+                    uid, name, domain, actions, entities, trigger_info, values, conditions, ind, hdr, query_lower,
+                    detect_additional_actions
+                )
+                pattern_key = next((k for k in ("hours", "minutes", "seconds") if k in trigger_info), "minutes")
+                pattern_val = trigger_info.get(pattern_key, "/5")
+                response_msg = (
+                    f"Generated Modern Automation:\n\n```yaml\n{code}\n```\n\n"
+                    f"🔄 Repeating trigger: every `{pattern_val}` {pattern_key}."
+                )
+            elif trigger_info["type"] == "zone":
+                code = generate_single_intent_automation(
+                    uid, name, domain, actions, entities, trigger_info, values, conditions, ind, hdr, query_lower,
+                    detect_additional_actions
+                )
+                event = trigger_info.get("event", "enter")
+                zone = trigger_info.get("zone", "zone.home")
+                response_msg = (
+                    f"Generated Modern Automation:\n\n```yaml\n{code}\n```\n\n"
+                    f"📍 Triggered when person **{event}s** `{zone}`."
+                )
+            elif multi_intent and trigger_info["type"] == "time" and len(trigger_info.get("times", [])) >= 2:
                 code = generate_multi_intent_automation(
                     uid, name, domain, actions, entities, trigger_info["times"], values, conditions, ind, hdr
                 )
+                response_msg = f"Generated Modern Automation:\n\n```yaml\n{code}\n```"
             else:
                 code = generate_single_intent_automation(
                     uid, name, domain, actions, entities, trigger_info, values, conditions, ind, hdr, query_lower,
                     detect_additional_actions
                 )
+                response_msg = f"Generated Modern Automation:\n\n```yaml\n{code}\n```"
 
-            return json_response({"success": True, "response": f"Generated Modern Automation:\n\n```yaml\n{code}\n```"})
+            return json_response({"success": True, "response": response_msg})
 
         except Exception as e:
             _LOGGER.error(f"AI Error: {e}", exc_info=True)

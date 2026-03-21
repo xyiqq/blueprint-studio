@@ -39,6 +39,72 @@ DOMAIN_SYNONYMS = {
     "group": ["group", "groups"],
 }
 
+# Sun trigger phrase patterns
+SUN_TRIGGER_PHRASES = {
+    "sunset": ["at sunset", "when sun sets", "when the sun sets", "after sunset", "before sunset", "sunset time"],
+    "sunrise": ["at sunrise", "when sun rises", "when the sun rises", "after sunrise", "before sunrise", "sunrise time"],
+}
+
+# Zone trigger phrase patterns
+ZONE_TRIGGER_PHRASES = {
+    "enter": ["arrive home", "arrive at home", "get home", "reach home", "enter home", "enter zone", "arrives home", "i arrive"],
+    "leave": ["leave home", "leave work", "depart home", "exit home", "exit zone", "i leave", "when i go"],
+}
+
+# Webhook trigger phrases
+WEBHOOK_TRIGGER_PHRASES = ["webhook", "via webhook", "webhook called", "when webhook", "on webhook"]
+
+# MQTT trigger phrases
+MQTT_TRIGGER_PHRASES = ["mqtt", "on mqtt", "when mqtt", "mqtt topic", "mqtt message"]
+
+# Interval trigger phrases (for time_pattern triggers)
+INTERVAL_TRIGGER_PHRASES = {
+    "minutes": r"every\s+(\d+)\s*(?:minute|minutes|min|mins)",
+    "hours": r"every\s+(\d+)\s*(?:hour|hours|hr|hrs)",
+    "seconds": r"every\s+(\d+)\s*(?:second|seconds|sec|secs)",
+}
+
+# Fan speed name-to-percentage mapping
+FAN_SPEED_NAMES = {
+    "low": 33,
+    "medium": 66,
+    "med": 66,
+    "high": 100,
+    "full": 100,
+    "turbo": 100,
+    "quiet": 20,
+    "silent": 10,
+}
+
+# Action verb vocabulary for extract_automation_name
+ACTION_VERB_MAP = {
+    "set": "Set",
+    "adjust": "Adjust",
+    "dim": "Dim",
+    "brighten": "Brighten",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "arm": "Arm",
+    "disarm": "Disarm",
+    "open": "Open",
+    "close": "Close",
+    "play": "Play",
+    "pause": "Pause",
+    "stop": "Stop",
+    "notify": "Notify",
+    "alert": "Notify",
+    "send": "Notify",
+    "activate": "Activate",
+    "run": "Activate",
+    "start": "Activate",
+    "toggle": "Toggle",
+    "turn on": "Turn On",
+    "turn off": "Turn Off",
+}
+
+# Conjunction words for splitting multi-domain queries
+MULTI_DOMAIN_CONJUNCTIONS = [" and ", " also ", " plus ", " as well as ", " & "]
+
 # Action mapping for different domains
 DOMAIN_ACTIONS = {
     "light": {"on": "turn_on", "off": "turn_off", "toggle": "toggle"},
