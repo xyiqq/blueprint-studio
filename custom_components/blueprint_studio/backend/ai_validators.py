@@ -476,6 +476,8 @@ def check_yaml(content: str, strict_mode: bool = True) -> web.Response:
     if isinstance(parsed, list):
         for idx, item in enumerate(parsed):
             if isinstance(item, dict) and ('alias' in item or 'id' in item):
+                if 'use_blueprint' in item:
+                    continue
                 auto_errors = _validate_automation(item, lines)
                 for error in auto_errors:
                     if error["type"] == "missing_automation_id":
