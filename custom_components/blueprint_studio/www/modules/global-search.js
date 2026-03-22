@@ -5,11 +5,11 @@ import { t } from './translations.js';
 import { fetchWithAuth, getAuthToken } from './api.js';
 import { eventBus } from './event-bus.js';
 import { API_BASE, STREAM_BASE } from './constants.js';
-import { 
-  showToast, 
-  showGlobalLoading, 
-  hideGlobalLoading, 
-  showConfirmDialog 
+import {
+  showToast,
+  showGlobalLoading,
+  hideGlobalLoading,
+  showConfirmDialog
 } from './ui.js';
 
 /**
@@ -26,7 +26,7 @@ export async function performGlobalSearch(query, options = {}) {
   const activeTab = document.querySelector('.search-mode-tab.active');
   const mode = activeTab ? activeTab.dataset.mode : 'all';
 
-  // 2. Search Entities (if mode is all or entities) — done synchronously first
+  // Search Entities synchronously first (fast, in-memory)
   const entityMatches = (mode === 'all' || mode === 'entities')
       ? HA_ENTITIES.filter(e =>
             e.entity_id.toLowerCase().includes(query.toLowerCase()) ||
@@ -35,14 +35,13 @@ export async function performGlobalSearch(query, options = {}) {
       : [];
 
   if (mode === 'entities') {
-      // Entities-only mode — render immediately without file search
       if (elements.globalSearchLoading) elements.globalSearchLoading.style.display = "none";
       state._lastGlobalSearchResults = [];
       renderGlobalSearchResults([], entityMatches);
       return;
   }
 
-  // 1. Search Files using streaming NDJSON (same auth path as content search)
+  // Search Files using streaming NDJSON — results appear as each file is scanned
   try {
       const token = await getAuthToken() || "";
       const params = new URLSearchParams({
@@ -57,7 +56,6 @@ export async function performGlobalSearch(query, options = {}) {
       if (options.exclude) params.set("exclude", options.exclude);
 
       const response = await fetch(`${STREAM_BASE}?${params}`);
-
       if (!response.ok || !response.body) throw new Error("Stream unavailable");
 
       const fileResults = [];
@@ -71,9 +69,15 @@ export async function performGlobalSearch(query, options = {}) {
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split("\n");
           buffer = lines.pop();
+          let hadNew = false;
           for (const line of lines) {
               if (!line.trim()) continue;
-              try { fileResults.push(JSON.parse(line)); } catch { /* skip */ }
+              try { fileResults.push(JSON.parse(line)); hadNew = true; } catch { /* skip */ }
+          }
+          // Incrementally patch the DOM as each file's results arrive
+          if (hadNew) {
+              state._lastGlobalSearchResults = fileResults;
+              renderGlobalSearchResults(fileResults, entityMatches);
           }
       }
 
@@ -82,7 +86,7 @@ export async function performGlobalSearch(query, options = {}) {
       renderGlobalSearchResults(fileResults, entityMatches);
 
   } catch (streamErr) {
-      // Fallback: POST-based search
+      // Fallback: POST-based search (no incremental render)
       try {
           const data = await fetchWithAuth(API_BASE, {
               method: "POST",
@@ -117,7 +121,7 @@ export async function performGlobalSearch(query, options = {}) {
 export function triggerGlobalSearch() {
     if (!elements.globalSearchInput) return;
     const query = elements.globalSearchInput.value;
-    
+
     if (!query || query.length < 2) {
         if (elements.globalSearchResults) {
             elements.globalSearchResults.innerHTML = `
@@ -128,7 +132,7 @@ export function triggerGlobalSearch() {
         }
         return;
     }
-    
+
     performGlobalSearch(query, {
         caseSensitive: elements.btnMatchCase?.classList.contains("active"),
         useRegex: elements.btnUseRegex?.classList.contains("active"),
@@ -151,9 +155,7 @@ export function copyEntityId(entityId) {
  */
 export async function openFileAndScroll(path, line) {
   eventBus.emit("file:open", { path: path });
-  
-  // Need to wait for editor to be ready for the new file
-  // Using event bus ensures we react when the file is actually loaded
+
   const unbind = eventBus.on('ui:refresh-tabs', () => {
       if (state.activeTab && state.activeTab.path === path && state.editor) {
           const lineIdx = line - 1;
@@ -166,11 +168,10 @@ export async function openFileAndScroll(path, line) {
               {className: "cm-search-active", clearOnEnter: true}
           );
           setTimeout(() => marker.clear(), 2000);
-          unbind(); // Only do this once
+          unbind();
       }
   });
-  
-  // Timeout safety
+
   setTimeout(unbind, 5000);
 }
 
@@ -185,7 +186,6 @@ export async function performGlobalReplace() {
 
   if (!query || results.length === 0) return;
 
-  // Group results by file for the message
   const grouped = {};
   results.forEach(res => {
       if (!grouped[res.path]) grouped[res.path] = 0;
@@ -225,7 +225,6 @@ export async function performGlobalReplace() {
 
       if (response.success) {
           showToast(t("search.replace_success", { count: response.files_updated }), "success");
-          // Refresh files and search
           eventBus.emit("ui:reload-files", { force: true });
           triggerGlobalSearch();
       } else {
@@ -265,7 +264,7 @@ export async function replaceInFile(path) {
                 action: "global_replace",
                 query: query,
                 replacement: replacement,
-                include: path, // Only this file
+                include: path,
                 case_sensitive: elements.btnMatchCase?.classList.contains('active'),
                 use_regex: elements.btnUseRegex?.classList.contains('active'),
                 match_word: elements.btnMatchWord?.classList.contains('active')
@@ -275,10 +274,8 @@ export async function replaceInFile(path) {
 
         if (response.success) {
             showToast("File updated successfully", "success");
-            // Reload if open
             const tab = state.openTabs.find(t => t.path === path);
             if (tab) eventBus.emit("file:open", { path, forceReload: true });
-            // Refresh search to update counts
             triggerGlobalSearch();
         }
     } catch (e) {
@@ -293,32 +290,28 @@ export async function replaceInFile(path) {
 export async function replaceSingleMatch(path, line, matchId) {
     const replacement = elements.globalReplaceInput?.value || "";
 
-    // 1. Open file and scroll to match
     await openFileAndScroll(path, line);
-    
-    // 2. Perform replacement in editor (we wait a bit for editor to settle)
+
     setTimeout(() => {
         if (state.editor && state.activeTab && state.activeTab.path === path) {
             const lineIdx = line - 1;
             const lineText = state.editor.getLine(lineIdx);
             const query = elements.globalSearchInput.value;
-            
-            // Use regex or string replacement based on settings
+
             const useRegex = elements.btnUseRegex?.classList.contains('active');
             const caseSensitive = elements.btnMatchCase?.classList.contains('active');
             const matchWord = elements.btnMatchWord?.classList.contains('active');
-            
+
             let searchPattern = query;
             if (!useRegex) searchPattern = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             if (matchWord) searchPattern = `\\b${searchPattern}\\b`;
-            
+
             const regex = new RegExp(searchPattern, caseSensitive ? 'g' : 'gi');
             const newLineText = lineText.replace(regex, replacement);
-            
+
             if (lineText !== newLineText) {
                 state.editor.replaceRange(newLineText, {line: lineIdx, ch: 0}, {line: lineIdx, ch: lineText.length});
                 showToast("Applied replacement in editor", "success");
-                // Remove the match from sidebar since it is now "done"
                 document.getElementById(matchId)?.remove();
             }
         }
@@ -326,12 +319,54 @@ export async function replaceSingleMatch(path, line, matchId) {
 }
 
 /**
- * Renders global search results in the sidebar
+ * Builds HTML for a single match row
+ */
+function _buildMatchHtml(m, matchId) {
+    const escapedPath = m.path.replace(/'/g, "\\'");
+    return `<div class="search-result-match" id="${matchId}" onclick="if(event.target.closest('.match-hover-actions')) return; window.blueprintStudio.openFileAndScroll('${escapedPath}', ${m.line})" style="padding: 6px 12px 6px 34px; cursor: pointer; font-family: monospace; font-size: 12px; border-bottom: 1px solid var(--border-color); display: flex; position: relative; align-items: center;">
+        <span style="color: var(--text-secondary); margin-right: 8px; min-width: 20px;">${m.line}:</span>
+        <span style="white-space: pre; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(m.content.trim())}</span>
+        <div class="match-hover-actions" style="display: flex; gap: 4px; position: absolute; right: 12px; background: var(--bg-primary); padding-left: 8px; opacity: 0;">
+            <span class="material-icons" title="Replace this match" onclick="event.stopPropagation(); window.blueprintStudio.replaceSingleMatch('${escapedPath}', ${m.line}, '${matchId}')" style="font-size: 14px; opacity: 0.7;">find_replace</span>
+            <span class="material-icons" title="Dismiss" onclick="event.stopPropagation(); document.getElementById('${matchId}').remove()" style="font-size: 14px; opacity: 0.7;">close</span>
+        </div>
+    </div>`;
+}
+
+/**
+ * Builds HTML for a complete file group (header + all matches)
+ */
+function _buildFileGroupHtml(path, matches) {
+    const filename = path.split("/").pop();
+    const folder = path.split("/").slice(0, -1).join("/");
+    const safeId = path.replace(/[^a-zA-Z0-9]/g, '-');
+    const escapedPath = path.replace(/'/g, "\\'");
+    return `<div class="search-result-file" id="group-${safeId}">
+        <div class="search-result-file-header" onclick="if(event.target.closest('.search-action-btn')) return; document.getElementById('results-${safeId}').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotated');" style="padding: 8px 12px; background: var(--bg-tertiary); cursor: pointer; display: flex; align-items: center; border-bottom: 1px solid var(--border-color);">
+            <span class="material-icons arrow rotated" style="font-size: 16px; margin-right: 6px; transition: transform 0.2s;">chevron_right</span>
+            <span style="font-weight: 600; font-size: 13px;">${filename}</span>
+            <span style="font-size: 11px; color: var(--text-secondary); margin-left: 8px; opacity: 0.7;">${folder}</span>
+            <div class="search-result-actions" style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
+                <span class="material-icons search-action-btn" title="Replace in this file" onclick="event.stopPropagation(); window.blueprintStudio.replaceInFile('${escapedPath}')" style="font-size: 14px; opacity: 0.6;">find_replace</span>
+                <span class="material-icons search-action-btn" title="Dismiss file" onclick="event.stopPropagation(); document.getElementById('group-${safeId}').remove()" style="font-size: 14px; opacity: 0.6;">close</span>
+                <span class="badge" style="background: var(--accent-color); color: white; border-radius: 10px; padding: 0 6px; font-size: 10px;">${matches.length}</span>
+            </div>
+        </div>
+        <div class="search-result-list" id="results-${safeId}" style="display: block;">
+            ${matches.map((m, idx) => _buildMatchHtml(m, `match-${safeId}-${idx}`)).join('')}
+        </div>
+    </div>`;
+}
+
+/**
+ * Renders global search results in the sidebar.
+ * On the first call (empty container) does a full render.
+ * On subsequent calls during streaming, patches only new/updated groups
+ * so collapsed groups stay collapsed and the list doesn't flicker.
  */
 function renderGlobalSearchResults(results, entityResults = []) {
   if (!elements.globalSearchResults) return;
 
-  // Prevent stale results if input was cleared while searching
   if (elements.globalSearchInput && elements.globalSearchInput.value.length < 2) {
       elements.globalSearchResults.innerHTML = `
           <div class="search-empty-state" style="padding: 40px 20px; text-align: center; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center;">
@@ -350,12 +385,19 @@ function renderGlobalSearchResults(results, entityResults = []) {
       return;
   }
 
-  let html = "";
+  // Group file results by path
+  const grouped = {};
+  results.forEach(res => {
+      if (!grouped[res.path]) grouped[res.path] = [];
+      grouped[res.path].push(res);
+  });
 
-  // 1. Entities Section
-  if (entityResults && entityResults.length > 0) {
-      html += `
-          <div class="search-result-group">
+  const isFirstRender = !elements.globalSearchResults.querySelector('.search-result-file, .search-result-group');
+
+  if (isFirstRender) {
+      let html = "";
+      if (entityResults && entityResults.length > 0) {
+          html += `<div class="search-result-group">
               <div class="search-result-file-header" onclick="document.getElementById('results-entities').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotated');" style="padding: 8px 12px; background: var(--bg-tertiary); cursor: pointer; display: flex; align-items: center; border-bottom: 1px solid var(--border-color);">
                   <span class="material-icons arrow rotated" style="font-size: 16px; margin-right: 6px; transition: transform 0.2s;">chevron_right</span>
                   <span style="font-weight: 600; font-size: 13px;">${t("search.entities")}</span>
@@ -369,62 +411,48 @@ function renderGlobalSearchResults(results, entityResults = []) {
                       </div>
                   `).join('')}
               </div>
-          </div>
-      `;
+          </div>`;
+      }
+      for (const [path, matches] of Object.entries(grouped)) {
+          html += _buildFileGroupHtml(path, matches);
+      }
+      elements.globalSearchResults.innerHTML = html;
+
+      const btnCollapse = document.getElementById('btn-collapse-search');
+      if (btnCollapse) {
+          const icon = btnCollapse.querySelector('.material-icons');
+          if (icon) icon.textContent = 'unfold_less';
+          btnCollapse.title = t("search.collapse_all");
+      }
+      return;
   }
 
-  // 2. Files Section (Group by file)
-  const grouped = {};
-  results.forEach(res => {
-      if (!grouped[res.path]) grouped[res.path] = [];
-      grouped[res.path].push(res);
-  });
-
+  // Incremental patch: add new groups, append new matches to existing ones
   for (const [path, matches] of Object.entries(grouped)) {
-      const filename = path.split("/").pop();
-      const folder = path.split("/").slice(0, -1).join("/");
       const safeId = path.replace(/[^a-zA-Z0-9]/g, '-');
+      const existingGroup = document.getElementById(`group-${safeId}`);
 
-      html += `
-          <div class="search-result-file" id="group-${safeId}">
-              <div class="search-result-file-header" onclick="if(event.target.closest('.search-action-btn')) return; document.getElementById('results-${safeId}').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotated');" style="padding: 8px 12px; background: var(--bg-tertiary); cursor: pointer; display: flex; align-items: center; border-bottom: 1px solid var(--border-color);">
-                  <span class="material-icons arrow rotated" style="font-size: 16px; margin-right: 6px; transition: transform 0.2s;">chevron_right</span>
-                  <span style="font-weight: 600; font-size: 13px;">${filename}</span>
-                  <span style="font-size: 11px; color: var(--text-secondary); margin-left: 8px; opacity: 0.7;">${folder}</span>
-                  
-                  <div class="search-result-actions" style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
-                      <span class="material-icons search-action-btn" title="Replace in this file" onclick="event.stopPropagation(); window.blueprintStudio.replaceInFile('${path.replace(/'/g, "\\'")}')" style="font-size: 14px; opacity: 0.6;">find_replace</span>
-                      <span class="material-icons search-action-btn" title="Dismiss file" onclick="event.stopPropagation(); document.getElementById('group-${safeId}').remove()" style="font-size: 14px; opacity: 0.6;">close</span>
-                      <span class="badge" style="background: var(--accent-color); color: white; border-radius: 10px; padding: 0 6px; font-size: 10px;">${matches.length}</span>
-                  </div>
-              </div>
-              <div class="search-result-list" id="results-${safeId}" style="display: block;">
-                  ${matches.map((m, idx) => {
-                      const matchId = `match-${safeId}-${idx}`;
-                      return `
-                      <div class="search-result-match" id="${matchId}" onclick="if(event.target.closest('.match-hover-actions')) return; window.blueprintStudio.openFileAndScroll('${m.path.replace(/'/g, "\\'")}', ${m.line})" style="padding: 6px 12px 6px 34px; cursor: pointer; font-family: monospace; font-size: 12px; border-bottom: 1px solid var(--border-color); display: flex; position: relative; align-items: center;">
-                          <span style="color: var(--text-secondary); margin-right: 8px; min-width: 20px;">${m.line}:</span>
-                          <span style="white-space: pre; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(m.content.trim())}</span>
+      if (!existingGroup) {
+          const div = document.createElement('div');
+          div.innerHTML = _buildFileGroupHtml(path, matches);
+          elements.globalSearchResults.appendChild(div.firstElementChild);
+      } else {
+          // Update badge count
+          const badge = existingGroup.querySelector('.search-result-actions .badge');
+          if (badge) badge.textContent = matches.length;
 
-                          <div class="match-hover-actions" style="display: flex; gap: 4px; position: absolute; right: 12px; background: var(--bg-primary); padding-left: 8px; opacity: 0;">
-                              <span class="material-icons" title="Replace this match" onclick="event.stopPropagation(); window.blueprintStudio.replaceSingleMatch('${m.path.replace(/'/g, "\\'")}', ${m.line}, '${matchId}')" style="font-size: 14px; opacity: 0.7;">find_replace</span>
-                              <span class="material-icons" title="Dismiss" onclick="event.stopPropagation(); document.getElementById('${matchId}').remove()" style="font-size: 14px; opacity: 0.7;">close</span>
-                          </div>
-                      </div>
-                  `}).join('')}
-              </div>
-          </div>
-      `;
-  }
-
-  elements.globalSearchResults.innerHTML = html;
-
-  // Reset collapse/expand button to "Collapse All" state after new results render
-  const btnCollapse = document.getElementById('btn-collapse-search');
-  if (btnCollapse) {
-      const icon = btnCollapse.querySelector('.material-icons');
-      if (icon) icon.textContent = 'unfold_less';
-      btnCollapse.title = t("search.collapse_all");
+          // Append only newly arrived matches
+          const list = document.getElementById(`results-${safeId}`);
+          if (list) {
+              const renderedCount = list.querySelectorAll('.search-result-match').length;
+              for (let i = renderedCount; i < matches.length; i++) {
+                  const matchId = `match-${safeId}-${i}`;
+                  const matchDiv = document.createElement('div');
+                  matchDiv.innerHTML = _buildMatchHtml(matches[i], matchId);
+                  list.appendChild(matchDiv.firstElementChild);
+              }
+          }
+      }
   }
 }
 
