@@ -81,7 +81,7 @@ export async function gitStatus(shouldFetch = false, silent = false) {
       ].length;
 
       // If git is in a conflict state, fetch the actual unmerged file list
-      const statusLower = gitState.status.toLowerCase();
+      const statusLower = typeof gitState.status === "string" ? gitState.status.toLowerCase() : "";
       const isConflicted = statusLower.includes("rebasing") || statusLower.includes("merging") ||
         statusLower.includes("unmerged") || statusLower.includes("conflict");
       if (isConflicted) {

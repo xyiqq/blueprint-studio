@@ -12,6 +12,7 @@ import {
   showConfirmDialog
 } from './ui.js';
 import { getFileIcon, formatBytes, isMobile, isTouchDevice } from './utils.js';
+import { saveSettings } from './settings.js';
 
 // Timer for debounced rendering
 export let fileTreeRenderTimer = null;
@@ -1144,10 +1145,12 @@ export async function toggleFolder(path) {
   if (state.expandedFolders.has(path)) {
     // Collapse folder
     state.expandedFolders.delete(path);
+    saveSettings();
     renderFileTree();
   } else {
     // Expand folder
     state.expandedFolders.add(path);
+    saveSettings();
 
     // LAZY LOADING: Load directory contents if not already loaded
     if (state.lazyLoadingEnabled && !state.loadedDirectories.has(path)) {
