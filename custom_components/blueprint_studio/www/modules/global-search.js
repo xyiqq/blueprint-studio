@@ -146,28 +146,60 @@ export function triggerGlobalSearch() {
  * Copies entity ID to clipboard
  */
 export function copyEntityId(entityId) {
-  navigator.clipboard.writeText(entityId);
-  showToast(`Copied: ${entityId}`, "success");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(entityId).then(() => {
+          showToast(`Copied: ${entityId}`, "success");
+      }).catch(() => _copyFallback(entityId));
+  } else {
+      _copyFallback(entityId);
+  }
+}
+
+function _copyFallback(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.cssText = 'position:fixed;top:-999px;left:-999px;';
+    document.body.appendChild(el);
+    el.select();
+    try {
+        document.execCommand('copy');
+        showToast(`Copied: ${text}`, "success");
+    } catch {
+        showToast(`Copy failed`, "error");
+    }
+    document.body.removeChild(el);
 }
 
 /**
- * Opens a file and scrolls to a specific line
+ * Opens a file and scrolls to a specific line, highlighting it briefly.
  */
 export async function openFileAndScroll(path, line) {
-  eventBus.emit("file:open", { path: path });
+  const lineIdx = line - 1;
+
+  const _scrollAndHighlight = (editor) => {
+      editor.setCursor({ line: lineIdx, ch: 0 });
+      editor.scrollIntoView({ line: lineIdx, ch: 0 }, 200);
+      editor.focus();
+      const marker = editor.markText(
+          { line: lineIdx, ch: 0 },
+          { line: lineIdx + 1, ch: 0 },
+          { className: "cm-search-active" }
+      );
+      setTimeout(() => marker.clear(), 2000);
+  };
+
+  // If the file is already the active tab, scroll immediately
+  if (state.activeTab && state.activeTab.path === path && state.editor) {
+      _scrollAndHighlight(state.editor);
+      return;
+  }
+
+  eventBus.emit("file:open", { path });
 
   const unbind = eventBus.on('ui:refresh-tabs', () => {
       if (state.activeTab && state.activeTab.path === path && state.editor) {
-          const lineIdx = line - 1;
-          state.editor.setCursor({line: lineIdx, ch: 0});
-          state.editor.scrollIntoView({line: lineIdx, ch: 0}, 200);
-          state.editor.focus();
-          const marker = state.editor.markText(
-              {line: lineIdx, ch: 0},
-              {line: lineIdx + 1, ch: 0},
-              {className: "cm-search-active", clearOnEnter: true}
-          );
-          setTimeout(() => marker.clear(), 2000);
+          // Small delay to let the editor finish setValue/refresh
+          setTimeout(() => _scrollAndHighlight(state.editor), 50);
           unbind();
       }
   });
