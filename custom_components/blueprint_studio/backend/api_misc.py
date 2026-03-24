@@ -187,6 +187,17 @@ async def get_entities(hass, data):
             "device_class": s.attributes.get("device_class"),
             "integration": platform_map.get(eid),
         }
+        if data.get("with_attributes"):
+            # Exclude very large / unserializable attributes
+            attrs = {}
+            for ak, av in s.attributes.items():
+                try:
+                    import json as _json
+                    _json.dumps(av)
+                    attrs[ak] = av
+                except Exception:
+                    attrs[ak] = str(av)
+            entry["attributes"] = attrs
         if ensure_domains and not domains and any(eid_lower.startswith(d + ".") for d in ensure_domains):
             ensured.append(entry)
         else:
@@ -297,6 +308,40 @@ async def reload_automations(hass):
         return json_response({"success": False, "message": str(e)})
 
 
+async def reload_yaml(hass, data):
+    """Reload a specific HA YAML domain (scripts, scenes, groups, etc.)."""
+    RELOADABLE = {
+        "automation":       ("automation", "reload"),
+        "script":           ("script",     "reload"),
+        "scene":            ("scene",      "reload"),
+        "group":            ("group",      "reload"),
+        "input_boolean":    ("input_boolean", "reload"),
+        "input_number":     ("input_number",  "reload"),
+        "input_select":     ("input_select",  "reload"),
+        "input_text":       ("input_text",    "reload"),
+        "input_datetime":   ("input_datetime","reload"),
+        "input_button":     ("input_button",  "reload"),
+        "timer":            ("timer",         "reload"),
+        "counter":          ("counter",       "reload"),
+        "schedule":         ("schedule",      "reload"),
+        "template":         ("template",      "reload"),
+        "rest":             ("rest",          "reload"),
+        "homeassistant":    ("homeassistant", "reload_config_entry"),
+        "core":             ("homeassistant", "reload_all"),
+    }
+    domain = (data.get("domain") or "").strip().lower()
+    if not domain:
+        return json_response({"success": False, "message": "domain is required"})
+    entry = RELOADABLE.get(domain)
+    if not entry:
+        return json_response({"success": False, "message": f"'{domain}' is not reloadable via this tool"})
+    try:
+        await hass.services.async_call(entry[0], entry[1])
+        return json_response({"success": True, "message": f"{domain} reloaded"})
+    except Exception as e:
+        return json_response({"success": False, "message": str(e)})
+
+
 async def get_themes(hass):
     """Return all installed theme names."""
     try:
@@ -327,39 +372,103 @@ async def get_addons(hass):
 
 
 async def get_services(hass):
-    """Return all registered HA services as domain.service strings with descriptions.
+    """Return all registered HA services with full metadata from services.yaml.
 
-    Uses a 30-second TTL cache — services change rarely and are only used for
-    editor autocomplete, so a brief staleness is acceptable.
+    Uses async_get_all_descriptions() — the same source the HA frontend uses —
+    so fields, selectors, descriptions and examples are always complete.
     """
     cached = _HassCache.get("services")
     if cached is not None:
         return json_response({"success": True, "services": cached})
 
     try:
-        raw = hass.services.async_services()
+        from homeassistant.helpers.service import async_get_all_descriptions
+
+        # async_get_all_descriptions returns:
+        # { domain: { service_name: { name, description, fields: { key: { description, example, selector, required } } } } }
+        descriptions = await async_get_all_descriptions(hass)
+
         services = []
-        for domain, domain_services in raw.items():
-            for service_name, service_obj in domain_services.items():
-                description = ""
-                try:
-                    if hasattr(service_obj, "description"):
-                        description = service_obj.description or ""
-                except Exception:
-                    pass
+        for domain, domain_services in descriptions.items():
+            for service_name, meta in domain_services.items():
+                if meta is None:
+                    meta = {}
+                raw_fields = meta.get("fields") or {}
+                fields = {}
+                for k, v in raw_fields.items():
+                    if not isinstance(v, dict):
+                        continue
+                    # Skip collapsed section headers (they have a "fields" subkey but no selector)
+                    if "fields" in v and "selector" not in v:
+                        # Flatten advanced/collapsed sections into top-level fields
+                        for sk, sv in v["fields"].items():
+                            if isinstance(sv, dict):
+                                fields[sk] = {
+                                    "description": sv.get("description") or sv.get("name") or "",
+                                    "required": bool(sv.get("required", False)),
+                                    "example": sv.get("example"),
+                                    "selector": sv.get("selector"),
+                                }
+                    else:
+                        fields[k] = {
+                            "description": v.get("description") or v.get("name") or "",
+                            "required": bool(v.get("required", False)),
+                            "example": v.get("example"),
+                            "selector": v.get("selector"),
+                        }
                 services.append({
                     "service": f"{domain}.{service_name}",
                     "domain": domain,
-                    "name": service_name,
-                    "description": description,
+                    "name": meta.get("name") or service_name,
+                    "description": meta.get("description") or "",
+                    "fields": fields,
                 })
+
         services.sort(key=lambda s: s["service"])
-        # Store with a 30-second effective TTL (services rarely change)
-        _HassCache._store["services"] = (time.monotonic() - _HassCache._ttl + 30.0, services)
+        # Cache for 60 seconds — services rarely change
+        _HassCache._store["services"] = (time.monotonic() - _HassCache._ttl + 60.0, services)
         return json_response({"success": True, "services": services})
     except Exception as e:
         _LOGGER.debug("get_services failed: %s", e)
         return json_response({"success": True, "services": []})
+
+
+async def render_template(hass, data):
+    """Render a Jinja2 template string using HA's template engine."""
+    template_str = data.get("template", "")
+    if not template_str:
+        return json_response({"success": True, "result": ""})
+    try:
+        from homeassistant.helpers import template as tpl
+        tmpl = tpl.Template(template_str, hass)
+        result = await hass.async_add_executor_job(tmpl.async_render)
+        return json_response({"success": True, "result": str(result)})
+    except Exception as e:
+        return json_response({"success": False, "error": str(e)})
+
+
+async def call_service(hass, data):
+    """Call a HA service with optional target and service data."""
+    domain = data.get("domain", "")
+    service = data.get("service", "")
+    service_data = data.get("service_data") or {}
+    target = data.get("target") or {}
+
+    if not domain or not service:
+        return json_response({"success": False, "error": "domain and service are required"})
+
+    try:
+        await hass.services.async_call(
+            domain,
+            service,
+            service_data=service_data,
+            target=target,
+            blocking=True,
+            return_response=False,
+        )
+        return json_response({"success": True})
+    except Exception as e:
+        return json_response({"success": False, "error": str(e)})
 
 
 async def run_config_check(hass):

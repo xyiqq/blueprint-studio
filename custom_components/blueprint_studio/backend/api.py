@@ -248,10 +248,13 @@ class BlueprintStudioApiView(HomeAssistantView):
             # Misc
             "restart_home_assistant": lambda d, h, u: api_misc.restart_home_assistant(h),
             "get_entities": lambda d, h, u: api_misc.get_entities(h, d),
+            "render_template": lambda d, h, u: api_misc.render_template(h, d),
+            "call_service": lambda d, h, u: api_misc.call_service(h, d),
             "convert_to_blueprint": lambda d, h, u: api_misc.convert_to_blueprint(self.ai, d, h),
             "parse_blueprint_inputs": lambda d, h, u: api_misc.parse_blueprint_inputs(self.ai, d, h),
             "instantiate_blueprint":  lambda d, h, u: api_misc.instantiate_blueprint(self.ai, d, h),
             "reload_automations": lambda d, h, u: api_misc.reload_automations(h),
+            "reload_yaml": lambda d, h, u: api_misc.reload_yaml(h, d),
         }
 
         handler = post_handlers.get(action)

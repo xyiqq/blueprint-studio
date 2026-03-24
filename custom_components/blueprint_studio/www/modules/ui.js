@@ -545,7 +545,7 @@ export function initElements() {
     elements.btnTerminal = document.getElementById("btn-terminal");
     elements.btnAiStudio = document.getElementById("btn-ai-studio");
     elements.btnRestartHa = document.getElementById("btn-restart-ha");
-    elements.btnConfigCheck = document.getElementById("btn-config-check");
+    elements.btnDevTools = document.getElementById("btn-dev-tools");
     elements.btnAppSettings = document.getElementById("btn-app-settings");
     elements.btnValidate = document.getElementById("btn-validate");
     elements.btnToggleAll = document.getElementById("btn-toggle-all");

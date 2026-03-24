@@ -14,7 +14,7 @@ let functions = {
     reportIssue: null,
     requestFeature: null,
     restartHomeAssistant: null,
-    runConfigCheck: null,
+    openDevTools: null,
     showCommandPalette: null,
     hideModal: null,
     confirmModal: null
@@ -82,8 +82,8 @@ export function initDialogCoordinator(callbacks) {
         if (functions.restartHomeAssistant) functions.restartHomeAssistant();
     });
 
-    eventBus.on("ha:config-check", () => {
-        if (functions.runConfigCheck) functions.runConfigCheck();
+    eventBus.on("ha:dev-tools", (data) => {
+        if (functions.openDevTools) functions.openDevTools(data && data.tab ? data.tab : 'template');
     });
 
     // Palette

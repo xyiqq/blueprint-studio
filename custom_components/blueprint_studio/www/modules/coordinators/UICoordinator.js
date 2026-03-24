@@ -836,9 +836,9 @@ export function initUICoordinator(callbacks) {
         });
     }
 
-    if (elements.btnConfigCheck) {
-        elements.btnConfigCheck.addEventListener("click", () => {
-            eventBus.emit('ha:config-check');
+    if (elements.btnDevTools) {
+        elements.btnDevTools.addEventListener("click", () => {
+            eventBus.emit('ha:dev-tools');
         });
     }
 
