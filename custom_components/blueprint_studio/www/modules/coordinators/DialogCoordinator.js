@@ -14,6 +14,7 @@ let functions = {
     reportIssue: null,
     requestFeature: null,
     restartHomeAssistant: null,
+    runConfigCheck: null,
     showCommandPalette: null,
     hideModal: null,
     confirmModal: null
@@ -79,6 +80,10 @@ export function initDialogCoordinator(callbacks) {
     // System Actions
     eventBus.on("ha:restart", () => {
         if (functions.restartHomeAssistant) functions.restartHomeAssistant();
+    });
+
+    eventBus.on("ha:config-check", () => {
+        if (functions.runConfigCheck) functions.runConfigCheck();
     });
 
     // Palette

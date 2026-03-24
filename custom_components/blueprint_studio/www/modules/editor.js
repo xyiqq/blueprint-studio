@@ -2,11 +2,130 @@
 import { state, elements } from './state.js';
 import { eventBus } from './event-bus.js';
 import { validateYaml, validateByFileType } from './file-operations.js';
-import { homeAssistantHint } from './ha-autocomplete.js';
+import { homeAssistantHint, HA_ENTITIES } from './ha-autocomplete.js';
 import { enableSplitView, disableSplitView } from './split-view.js';
+import { showToast } from './ui.js';
 
 // CodeMirror is loaded globally via script tags
 
+/**
+ * Shows a floating entity info popup near the given screen coordinates.
+ * Dismissed on outside click or Escape.
+ */
+function _showEntityPopup(entity, clientX, clientY) {
+  // Remove any existing popup
+  const existing = document.getElementById('entity-inspect-popup');
+  if (existing) existing.remove();
+
+  const iconName = entity.icon ? entity.icon.replace('mdi:', '') : null;
+  const iconHtml = iconName
+    ? `<span class="mdi mdi-${iconName}" style="margin-right:6px;font-size:1.2em;vertical-align:middle;"></span>`
+    : `<span class="material-icons" style="margin-right:6px;font-size:1.1em;vertical-align:middle;color:var(--accent-color);">device_hub</span>`;
+
+  const stateVal = entity.state !== undefined ? String(entity.state) : '—';
+  const domain = entity.entity_id.split('.')[0];
+
+  // Build a few key attribute rows (skip bulky ones)
+  const skipAttrs = new Set(['friendly_name', 'icon', 'entity_picture', 'supported_features', 'supported_color_modes', 'color_mode']);
+  const attrRows = Object.entries(entity.attributes || {})
+    .filter(([k]) => !skipAttrs.has(k))
+    .slice(0, 6)
+    .map(([k, v]) => {
+      const valStr = typeof v === 'object' ? JSON.stringify(v) : String(v);
+      return `<div class="eip-attr"><span class="eip-attr-key">${k}</span><span class="eip-attr-val">${valStr}</span></div>`;
+    })
+    .join('');
+
+  const popup = document.createElement('div');
+  popup.id = 'entity-inspect-popup';
+  popup.innerHTML = `
+    <div class="eip-header">
+      ${iconHtml}<span class="eip-entity-id">${entity.entity_id}</span>
+      <button class="eip-close" title="Close">✕</button>
+    </div>
+    ${entity.friendly_name ? `<div class="eip-name">${entity.friendly_name}</div>` : ''}
+    <div class="eip-state-row">
+      <span class="eip-domain-chip">${domain}</span>
+      <span class="eip-state ${stateVal === 'on' ? 'eip-state-on' : stateVal === 'off' ? 'eip-state-off' : ''}">${stateVal}</span>
+    </div>
+    ${attrRows ? `<div class="eip-attrs">${attrRows}</div>` : ''}
+    <div class="eip-actions">
+      <button class="eip-btn" id="eip-copy-btn">
+        <span class="material-icons" style="font-size:14px;vertical-align:middle;">content_copy</span> Copy ID
+      </button>
+    </div>
+  `;
+
+  // Position near click, keep within viewport
+  popup.style.cssText = `
+    position: fixed;
+    z-index: 99999;
+    top: ${clientY + 10}px;
+    left: ${clientX}px;
+    min-width: 260px;
+    max-width: 360px;
+    background: var(--bg-primary, #1e1e2e);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    padding: 12px;
+    font-size: 13px;
+    color: var(--text-primary, #cdd6f4);
+    font-family: var(--font-mono, monospace);
+  `;
+
+  document.body.appendChild(popup);
+
+  // Clamp to viewport
+  const rect = popup.getBoundingClientRect();
+  if (rect.right > window.innerWidth - 8) {
+    popup.style.left = `${window.innerWidth - rect.width - 8}px`;
+  }
+  if (rect.bottom > window.innerHeight - 8) {
+    popup.style.top = `${clientY - rect.height - 10}px`;
+  }
+
+  // Close button
+  popup.querySelector('.eip-close').addEventListener('click', () => popup.remove());
+
+  // Copy ID button
+  popup.querySelector('#eip-copy-btn').addEventListener('click', () => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(entity.entity_id).then(() => showToast(`Copied: ${entity.entity_id}`, 'success')).catch(() => _fallbackCopy(entity.entity_id));
+    } else {
+      _fallbackCopy(entity.entity_id);
+    }
+  });
+
+  // Dismiss on outside click or Escape
+  const dismiss = (e) => {
+    if (!popup.contains(e.target)) {
+      popup.remove();
+      document.removeEventListener('mousedown', dismiss, true);
+    }
+  };
+  const dismissKey = (e) => {
+    if (e.key === 'Escape') {
+      popup.remove();
+      document.removeEventListener('keydown', dismissKey, true);
+      document.removeEventListener('mousedown', dismiss, true);
+    }
+  };
+  setTimeout(() => {
+    document.addEventListener('mousedown', dismiss, true);
+    document.addEventListener('keydown', dismissKey, true);
+  }, 50);
+}
+
+function _fallbackCopy(text) {
+  const el = document.createElement('textarea');
+  el.value = text;
+  el.style.cssText = 'position:fixed;top:-999px;left:-999px;';
+  document.body.appendChild(el);
+  el.select();
+  try { document.execCommand('copy'); showToast(`Copied: ${text}`, 'success'); } catch { showToast('Copy failed', 'error'); }
+  document.body.removeChild(el);
+}
 
 /**
  * Inserts a random UUID v4 at the current cursor position
@@ -281,6 +400,30 @@ export function createEditor(container = null, isPrimary = true) {
 
     // Only handle left clicks
     if (e.button !== 0) return;
+
+    // Ctrl/Cmd+click — jump to entity definition / inspect entity
+    if ((e.ctrlKey || e.metaKey) && HA_ENTITIES.length > 0) {
+      const pos = cm.coordsChar({ left: e.clientX, top: e.clientY });
+      if (pos) {
+        const lineText = cm.getLine(pos.line) || '';
+        // Find entity_id token under cursor: domain.entity pattern
+        const entityRe = /[a-z_]+\.[a-z0-9_]+/g;
+        let m;
+        while ((m = entityRe.exec(lineText)) !== null) {
+          if (pos.ch >= m.index && pos.ch <= m.index + m[0].length) {
+            const entityId = m[0];
+            const entity = HA_ENTITIES.find(e => e.entity_id === entityId);
+            if (entity) {
+              e.preventDefault();
+              e.codemirrorIgnore = true;
+              _showEntityPopup(entity, e.clientX, e.clientY);
+              return;
+            }
+            break;
+          }
+        }
+      }
+    }
 
     const pos = cm.coordsChar({left: e.clientX, top: e.clientY});
     if (!pos) return;

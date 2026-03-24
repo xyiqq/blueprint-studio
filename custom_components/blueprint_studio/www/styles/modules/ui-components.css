@@ -972,3 +972,95 @@
       padding: 1px 4px;
       font-family: monospace;
     }
+
+/* ========== Config Check Panel ========== */
+#config-check-panel .ccp-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color, #333);
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary, #1e1e2e);
+  z-index: 1;
+}
+#config-check-panel .ccp-status-icon { font-size: 20px; }
+#config-check-panel .ccp-ok { color: var(--success-color, #a6e3a1); }
+#config-check-panel .ccp-fail { color: var(--error-color, #f38ba8); }
+#config-check-panel .ccp-title {
+  flex: 1;
+  font-weight: 600;
+  font-size: 13px;
+}
+#config-check-panel .ccp-close {
+  background: none;
+  border: none;
+  color: var(--text-muted, #888);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+}
+#config-check-panel .ccp-close:hover { color: var(--text-primary); }
+#config-check-panel .ccp-errors { padding: 8px 0; }
+#config-check-panel .ccp-error-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+#config-check-panel .ccp-err-icon {
+  color: var(--error-color, #f38ba8);
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+#config-check-panel .ccp-error-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+#config-check-panel .ccp-file-link {
+  background: none;
+  border: none;
+  color: var(--accent-color, #89b4fa);
+  cursor: pointer;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  padding: 0;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  text-decoration: underline;
+}
+#config-check-panel .ccp-file-link:hover { opacity: 0.8; }
+#config-check-panel .ccp-error-msg {
+  font-size: 11px;
+  color: var(--text-secondary, #a6adc8);
+  word-break: break-word;
+}
+#config-check-panel .ccp-raw-details { padding: 0; }
+#config-check-panel .ccp-raw-toggle {
+  cursor: pointer;
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--text-muted, #888);
+  user-select: none;
+  border-top: 1px solid var(--border-color, #333);
+}
+#config-check-panel .ccp-raw-toggle:hover { color: var(--text-primary); }
+#config-check-panel .ccp-raw {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 11px;
+  color: var(--text-secondary, #a6adc8);
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: var(--bg-secondary, #181825);
+  border-top: 1px solid var(--border-color, #333);
+  max-height: 200px;
+  overflow-y: auto;
+}

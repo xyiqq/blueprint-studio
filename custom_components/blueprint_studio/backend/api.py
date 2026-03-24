@@ -118,6 +118,7 @@ class BlueprintStudioApiView(HomeAssistantView):
             "get_themes":   lambda r, u, p, h: api_misc.get_themes(h),
             "get_addons":   lambda r, u, p, h: api_misc.get_addons(h),
             "get_services": lambda r, u, p, h: api_misc.get_services(h),
+            "run_config_check": lambda r, u, p, h: api_misc.run_config_check(h),
         }
 
         handler = get_handlers.get(action)

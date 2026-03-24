@@ -125,6 +125,48 @@ export function refreshAllUIStrings() {
   if (elements.btnAppSettings) elements.btnAppSettings.title = t("toolbar.settings");
   if (elements.btnRefresh) elements.btnRefresh.title = t("toolbar.refresh");
 
+  // Support Modal
+  const supportTitle = document.querySelector("#modal-support-overlay .modal-title");
+  if (supportTitle) supportTitle.textContent = t("support.title");
+
+  if (elements.btnSupportGuide) {
+      const title = elements.btnSupportGuide.querySelector(".support-text div:first-child");
+      const desc = elements.btnSupportGuide.querySelector(".support-text div:last-child");
+      if (title) title.textContent = t("support.guide_title");
+      if (desc) desc.textContent = t("support.guide_desc");
+  }
+
+  if (elements.btnSupportShortcuts) {
+      const title = elements.btnSupportShortcuts.querySelector(".support-text div:first-child");
+      const desc = elements.btnSupportShortcuts.querySelector(".support-text div:last-child");
+      if (title) title.textContent = t("support.shortcuts_title");
+      if (desc) desc.textContent = t("support.shortcuts_desc");
+  }
+
+  if (elements.btnSupportFeature) {
+      const title = elements.btnSupportFeature.querySelector(".support-text div:first-child");
+      const desc = elements.btnSupportFeature.querySelector(".support-text div:last-child");
+      if (title) title.textContent = t("support.feature_title");
+      if (desc) desc.textContent = t("support.feature_desc");
+  }
+
+  if (elements.btnSupportIssue) {
+      const title = elements.btnSupportIssue.querySelector(".support-text div:first-child");
+      const desc = elements.btnSupportIssue.querySelector(".support-text div:last-child");
+      if (title) title.textContent = t("support.issue_title");
+      if (desc) desc.textContent = t("support.issue_desc");
+  }
+
+  if (elements.btnGithubStar) {
+      const starText = elements.btnGithubStar.querySelector("span:last-child");
+      if (starText) starText.textContent = t("support.github_star");
+  }
+
+  if (elements.btnGithubFollow) {
+      const followText = elements.btnGithubFollow.querySelector("span:last-child");
+      if (followText) followText.textContent = t("support.github_follow");
+  }
+
   // Sidebar
   if (elements.activityExplorer) elements.activityExplorer.title = t("sidebar.explorer");
   if (elements.activitySearch) elements.activitySearch.title = t("sidebar.search");

@@ -64,13 +64,13 @@ export async function initTerminal() {
             const link = document.createElement('link');
             link.id = 'xterm-css';
             link.rel = 'stylesheet';
-            link.href = 'https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css';
+            link.href = '/local/blueprint_studio/vendor/xterm/xterm.css';
             document.head.appendChild(link);
         }
 
         try {
-            await loadScript('https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js');
-            await loadScript('https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js');
+            await loadScript('/local/blueprint_studio/vendor/xterm/xterm.js');
+            await loadScript('/local/blueprint_studio/vendor/xterm/xterm-addon-fit.js');
 
             // Wait a bit and verify Terminal class is available (with retry)
             let retries = 0;

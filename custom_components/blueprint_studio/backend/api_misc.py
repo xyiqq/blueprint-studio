@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import subprocess
 import time
 
 from ..const import VERSION
@@ -359,3 +360,149 @@ async def get_services(hass):
     except Exception as e:
         _LOGGER.debug("get_services failed: %s", e)
         return json_response({"success": True, "services": []})
+
+
+async def run_config_check(hass):
+    """Run HA config check and return structured results.
+
+    Tries (in order):
+    1. ``hass --script check_config`` — works in all HA environments.
+    2. ``ha core check`` — works on HAOS with the Supervisor CLI.
+
+    Returns a dict with:
+        success  – True if the check passed (no errors)
+        output   – raw combined stdout+stderr text
+        errors   – list of {file, line, message} dicts parsed from the output
+    """
+    import shutil
+    import os
+
+    config_dir = hass.config.config_dir
+
+    def _run() -> dict:
+        # Strategy 1: hass --script check_config
+        hass_bin = shutil.which("hass")
+        if hass_bin:
+            try:
+                result = subprocess.run(
+                    [hass_bin, "--script", "check_config", "--config", config_dir],
+                    capture_output=True, text=True, timeout=60
+                )
+                output = (result.stdout or "") + (result.stderr or "")
+                return _parse_check_output(output, result.returncode, config_dir)
+            except Exception as exc:
+                _LOGGER.debug("hass check_config failed: %s", exc)
+
+        # Strategy 2: ha core check (HAOS Supervisor)
+        ha_bin = shutil.which("ha")
+        if ha_bin:
+            try:
+                result = subprocess.run(
+                    [ha_bin, "core", "check"],
+                    capture_output=True, text=True, timeout=30
+                )
+                output = (result.stdout or "") + (result.stderr or "")
+                return _parse_check_output(output, result.returncode, config_dir)
+            except Exception as exc:
+                _LOGGER.debug("ha core check failed: %s", exc)
+
+        return {
+            "success": False,
+            "output": "Config check is not available in this environment.\n"
+                      "Neither 'hass --script check_config' nor 'ha core check' could be run.",
+            "errors": [],
+        }
+
+    result = await hass.async_add_executor_job(_run)
+    return json_response({"success": True, "result": result})
+
+
+def _parse_check_output(output: str, returncode: int, config_dir: str = "") -> dict:
+    """Parse the raw text output from hass/ha config check into structured errors."""
+    import re
+
+    # Normalise config_dir so we can strip it from absolute paths
+    config_prefix = config_dir.rstrip("/") + "/" if config_dir else ""
+
+    def _rel(path: str) -> str:
+        """Return path relative to config dir, or as-is if outside."""
+        if config_prefix and path.startswith(config_prefix):
+            return path[len(config_prefix):]
+        return path
+
+    errors = []
+    lines = output.splitlines()
+
+    # Two formats produced by hass --script check_config:
+    #
+    # Format A (inline):
+    #   ERROR: ... (configuration.yaml, line 42)
+    #
+    # Format B (YAML parser — multi-line block):
+    #   ERROR:annotatedyaml.loader:while parsing a block collection
+    #     in "/config/configuration.yaml", line 16, column 3
+    #   expected <block end>, but found ...
+    #     in "/config/configuration.yaml", line 17, column 5
+    #
+    # Strategy: scan for `in "...", line N` lines (Format B) and pair each with
+    # the nearest preceding error/message text that isn't itself a location line.
+
+    # Regex for Format B location lines: in "path", line N[, column M]
+    loc_re = re.compile(r'^\s*in\s+"([^"]+)",\s*line\s+(\d+)', re.IGNORECASE)
+    # Regex for Format A: (path, line N) at end of line
+    inline_re = re.compile(r'\(([^,)]+),\s*line\s*(\d+)\)')
+
+    seen = set()  # deduplicate by (file, line)
+
+    for i, line in enumerate(lines):
+        # Format A
+        m = inline_re.search(line)
+        if m:
+            key = (_rel(m.group(1).strip()), int(m.group(2)))
+            if key not in seen:
+                seen.add(key)
+                errors.append({
+                    "file": _rel(m.group(1).strip()),
+                    "line": int(m.group(2)),
+                    "message": line.strip(),
+                })
+            continue
+
+        # Format B — location line
+        m = loc_re.match(line)
+        if m:
+            fpath = _rel(m.group(1).strip())
+            lineno = int(m.group(2))
+            key = (fpath, lineno)
+            if key in seen:
+                continue
+            seen.add(key)
+
+            # Find nearest preceding non-location, non-empty line as the message
+            msg = ""
+            for j in range(i - 1, max(i - 5, -1), -1):
+                candidate = lines[j].strip()
+                if candidate and not loc_re.match(lines[j]):
+                    msg = candidate
+                    break
+
+            errors.append({
+                "file": fpath,
+                "line": lineno,
+                "message": msg or line.strip(),
+            })
+
+    # Deduplicate: keep only first occurrence of each (file, line) pair
+    # (already handled via `seen` above)
+
+    passed = returncode == 0 and not errors
+    if "no errors found" in output.lower() or "all good" in output.lower():
+        passed = True
+        errors = []
+
+    return {
+        "success": passed,
+        "output": output,
+        "errors": errors,
+    }
+

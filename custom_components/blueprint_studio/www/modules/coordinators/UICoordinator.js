@@ -25,6 +25,7 @@ import { toggleTerminal } from '../terminal.js';
 import { toggleAISidebar, sendAIChatMessage, updateAIVisibility } from '../ai-ui.js';
 
 import { updateBreadcrumb, expandFolderInTree } from '../breadcrumb.js';
+import { showUserGuide } from '../user-guide.js';
 // Removed redundant import: import { renderAssetPreview } from '../asset-preview.js';
 
 /**
@@ -688,6 +689,13 @@ export function initUICoordinator(callbacks) {
         });
     }
 
+    if (elements.btnSupportGuide) {
+        elements.btnSupportGuide.addEventListener("click", () => {
+            if (elements.modalSupportOverlay) elements.modalSupportOverlay.classList.remove("visible");
+            showUserGuide();
+        });
+    }
+
     if (elements.btnSupportShortcuts) {
         elements.btnSupportShortcuts.addEventListener("click", () => {
             if (elements.modalSupportOverlay) elements.modalSupportOverlay.classList.remove("visible");
@@ -825,6 +833,12 @@ export function initUICoordinator(callbacks) {
     if (elements.btnRestartHa) {
         elements.btnRestartHa.addEventListener("click", () => {
             eventBus.emit('ha:restart');
+        });
+    }
+
+    if (elements.btnConfigCheck) {
+        elements.btnConfigCheck.addEventListener("click", () => {
+            eventBus.emit('ha:config-check');
         });
     }
 

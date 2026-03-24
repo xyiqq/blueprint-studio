@@ -210,10 +210,10 @@ export async function ensureDiffLibrariesLoaded(showGlobalLoading, hideGlobalLoa
   if (showGlobalLoading) showGlobalLoading("Initializing Diff viewer...");
   try {
       if (!window.diff_match_patch) {
-          await loadScript("https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js");
+          await loadScript("/local/blueprint_studio/vendor/diff/diff_match_patch.js");
       }
       if (!CodeMirror.MergeView) {
-          await loadScript("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/merge/merge.min.js");
+          await loadScript("/local/blueprint_studio/vendor/codemirror/js/merge.min.js");
       }
   } catch (e) {
       console.error("Failed to load Diff libraries", e);

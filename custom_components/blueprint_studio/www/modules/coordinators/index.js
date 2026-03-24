@@ -35,6 +35,10 @@ import {
 } from '../api.js';
 
 import {
+  runConfigCheck as runConfigCheckImpl
+} from '../config-check.js';
+
+import {
   insertUUID as insertUUIDImpl
 } from '../editor.js';
 
@@ -604,6 +608,7 @@ export function initializeEventHandlers() {
     reportIssue: reportIssueImpl,
     requestFeature: requestFeatureImpl,
     restartHomeAssistant: restartHomeAssistantImpl,
+    runConfigCheck: runConfigCheckImpl,
     showCommandPalette: showCommandPaletteImpl,
     hideModal: hideModalImpl,
     confirmModal: confirmModalImpl

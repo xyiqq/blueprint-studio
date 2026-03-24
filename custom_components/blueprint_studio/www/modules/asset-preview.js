@@ -194,7 +194,7 @@ function renderPdfPreview(tab, filename) {
 
   // Setup PDF.js
   const pdfjsLib = window['pdfjs-dist/build/pdf'];
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/local/blueprint_studio/vendor/pdfjs/pdf.worker.min.js';
 
   elements.assetPreview.innerHTML = `
     <div class="pdf-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--bg-tertiary);">

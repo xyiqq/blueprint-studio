@@ -1,0 +1,54 @@
+name: Update Vendored Libraries
+
+on:
+  schedule:
+    # Run every Monday at 08:00 UTC
+    - cron: "0 8 * * 1"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-vendor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests packaging
+
+      - name: Run vendor update script
+        id: update
+        run: python .github/scripts/update_vendor.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update vendored libraries"
+          branch: "chore/vendor-update"
+          delete-branch: true
+          title: "chore: update vendored libraries"
+          body: |
+            Automated update of vendored frontend libraries.
+
+            See the changed files for which libraries were updated and to which versions.
+
+            This PR was created automatically by the **Update Vendored Libraries** workflow.
+          labels: |
+            dependencies
+            frontend

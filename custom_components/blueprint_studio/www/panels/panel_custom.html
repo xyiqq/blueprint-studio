@@ -11,65 +11,63 @@
   <link rel="manifest" href="/local/blueprint_studio/site.webmanifest?v={{VERSION}}">
   <link rel="apple-touch-icon" href="/local/blueprint_studio/icon.png">
 
-  <!-- CodeMirror -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/merge/merge.min.css">
+  <!-- CodeMirror (local) -->
+  <link rel="stylesheet" href="/local/blueprint_studio/vendor/codemirror/css/codemirror.min.css">
+  <link rel="stylesheet" href="/local/blueprint_studio/vendor/codemirror/css/lint.min.css">
+  <link rel="stylesheet" href="/local/blueprint_studio/vendor/codemirror/css/dialog.min.css">
+  <link rel="stylesheet" href="/local/blueprint_studio/vendor/codemirror/css/foldgutter.min.css">
+  <link rel="stylesheet" href="/local/blueprint_studio/vendor/codemirror/css/show-hint.min.css">
+  <link rel="stylesheet" href="/local/blueprint_studio/vendor/codemirror/css/merge.min.css">
 
   <!-- Themes -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+  <link rel="stylesheet" href="/local/blueprint_studio/vendor/codemirror/css/material-darker.min.css">
   <!-- Note: "default" theme is built into codemirror.min.css, no separate file needed -->
 
-  <!-- GitHub Octicons (for Git features) -->
-  <link href="https://unpkg.com/@primer/octicons@19.8.0/dist/octicons.css" rel="stylesheet">
+  <!-- GitHub Octicons (for Git features, local) -->
+  <link href="/local/blueprint_studio/vendor/octicons/octicons.css" rel="stylesheet">
 
-  <!-- Google Fonts for Editor -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Roboto+Mono:wght@400;500;600&family=Source+Code+Pro:wght@400;500;600&family=Ubuntu+Mono:wght@400;700&family=Libertinus+Mono:wght@400;500;600&family=Reddit+Mono:wght@400;500;600&family=DM+Mono:wght@400;500;600&family=Azeret+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Code Editor Fonts (local) -->
+  <link rel="stylesheet" href="/local/blueprint_studio/fonts/code/code-fonts.css">
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/jump-to-line.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/indent-fold.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/anyword-hint.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/mode/overlay.min.js"></script>
-  
-  <!-- PDF.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/codemirror.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/yaml.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/javascript.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/python.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/clike.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/css.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/xml.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/htmlmixed.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/markdown.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/shell.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/lint.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/matchbrackets.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/closebrackets.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/search.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/searchcursor.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/jump-to-line.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/dialog.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/foldcode.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/foldgutter.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/indent-fold.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/brace-fold.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/comment.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/active-line.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/show-hint.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/anyword-hint.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/codemirror/js/overlay.min.js"></script>
 
-  <!-- Marked.js for GitHub Flavored Markdown -->
-  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked-gfm-heading-id@3.1.3/lib/index.umd.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked-mangle@1.1.7/lib/index.umd.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked-highlight@2.1.1/lib/index.umd.js"></script>
-  
-  <!-- Highlight.js for Markdown Code Blocks -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- PDF.js (local) -->
+  <script src="/local/blueprint_studio/vendor/pdfjs/pdf.min.js"></script>
+
+  <!-- Marked.js for GitHub Flavored Markdown (local) -->
+  <script src="/local/blueprint_studio/vendor/marked/marked.min.js"></script>
+  <script src="/local/blueprint_studio/vendor/marked/marked-gfm-heading-id.umd.js"></script>
+  <script src="/local/blueprint_studio/vendor/marked/marked-mangle.umd.js"></script>
+  <script src="/local/blueprint_studio/vendor/marked/marked-highlight.umd.js"></script>
+
+  <!-- Highlight.js for Markdown Code Blocks (local) -->
+  <link rel="stylesheet" href="/local/blueprint_studio/vendor/highlight/github-dark.min.css">
+  <script src="/local/blueprint_studio/vendor/highlight/highlight.min.js"></script>
 
   <!-- Blueprint Studio Styles (modular) -->
   <link rel="stylesheet" href="/local/blueprint_studio/styles/modules/base.css?v={{VERSION}}">
@@ -85,6 +83,7 @@
   <link rel="stylesheet" href="/local/blueprint_studio/styles/modules/welcome.css?v={{VERSION}}">
   <link rel="stylesheet" href="/local/blueprint_studio/styles/modules/themes.css?v={{VERSION}}">
   <link rel="stylesheet" href="/local/blueprint_studio/styles/modules/responsive.css?v={{VERSION}}">
+  <link rel="stylesheet" href="/local/blueprint_studio/styles/modules/user-guide.css?v={{VERSION}}">
 </head>
 <body>
   <!-- ... existing body ... -->
@@ -249,6 +248,9 @@
       </button>
       <button class="toolbar-btn" id="btn-restart-ha" title="Restart Home Assistant">
         <span class="material-icons" style="color: #3ea589;">restart_alt</span>
+      </button>
+      <button class="toolbar-btn" id="btn-config-check" title="Check HA Configuration">
+        <span class="material-icons" style="color: #f9e2af;">fact_check</span>
       </button>
       <button class="toolbar-btn" id="btn-app-settings" title="Settings">
         <span class="material-icons">settings</span>
@@ -877,9 +879,18 @@
       </div>
       <div class="modal-body">
         <div class="support-options" style="display: flex; flex-direction: column; gap: 12px;">
-          
-          <button class="support-btn" id="btn-support-shortcuts" style="display: flex; align-items: center; padding: 16px; border: 1px solid var(--border-color); background: var(--bg-primary); border-radius: 8px; cursor: pointer; text-align: left; transition: background 0.15s;">
-            <div class="support-icon" style="width: 40px; height: 40px; background: var(--bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+
+          <button class="support-btn" id="btn-support-guide" style="display: flex; align-items: center; padding: 16px; border: 1px solid var(--border-color); background: var(--bg-primary); border-radius: 8px; cursor: pointer; text-align: left; transition: background 0.15s;">
+            <div class="support-icon" style="width: 40px; height: 40px; background: rgba(76, 175, 80, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+              <span class="material-icons" style="color: #4caf50;">auto_stories</span>
+            </div>
+            <div class="support-text">
+              <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">User Guide</div>
+              <div style="font-size: 13px; color: var(--text-secondary);">Complete interactive guide to Blueprint Studio</div>
+            </div>
+          </button>
+
+          <button class="support-btn" id="btn-support-shortcuts" style="display: flex; align-items: center; padding: 16px; border: 1px solid var(--border-color); background: var(--bg-primary); border-radius: 8px; cursor: pointer; text-align: left; transition: background 0.15s;">            <div class="support-icon" style="width: 40px; height: 40px; background: var(--bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
               <span class="material-icons" style="color: var(--accent-color);">keyboard</span>
             </div>
             <div class="support-text">

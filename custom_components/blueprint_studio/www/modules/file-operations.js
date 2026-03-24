@@ -349,33 +349,7 @@ export async function formatCode() {
   }
 }
 
-/**
- * Load Pyodide Python runtime for syntax validation
- */
-async function loadPyodide() {
-  if (window.pyodide) return; // Already loaded
 
-  try {
-    // Load Pyodide from CDN
-    const script = document.createElement('script');
-    script.src = "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js";
-    document.head.appendChild(script);
-
-    // Wait for pyodide to load
-    await new Promise((resolve) => {
-      script.onload = resolve;
-    });
-
-    // Initialize Pyodide runtime
-    const pyodide = await window.loadPyodide();
-    window.pyodide = pyodide;
-
-    /*console.log*/ void("✅ Pyodide Python runtime loaded successfully");
-  } catch (error) {
-    console.error("Failed to load Pyodide:", error);
-    throw new Error("Failed to load Python validator");
-  }
-}
 
 /**
  * Validate Python using Pyodide (Python in WASM)
@@ -405,7 +379,7 @@ async function loadAcorn() {
   if (window.acorn) return; // Already loaded
 
   try {
-    await loadScript("https://unpkg.com/acorn@8.10.0/dist/acorn.js");
+    await loadScript("/local/blueprint_studio/vendor/acorn/acorn.js");
     /*console.log*/ void("✅ Acorn parser loaded successfully");
   } catch (error) {
     console.error("Failed to load Acorn:", error);
@@ -526,16 +500,16 @@ async function loadPrettier() {
 
   try {
     // Load Prettier standalone
-    await loadScript("https://unpkg.com/prettier@3.2.5/standalone.js");
+    await loadScript("/local/blueprint_studio/vendor/prettier/standalone.js");
 
     // Load plugins
-    await loadScript("https://unpkg.com/prettier@3.2.5/plugins/babel.js");
-    await loadScript("https://unpkg.com/prettier@3.2.5/plugins/estree.js");
-    await loadScript("https://unpkg.com/prettier@3.2.5/plugins/yaml.js");
-    await loadScript("https://unpkg.com/prettier@3.2.5/plugins/html.js");
-    await loadScript("https://unpkg.com/prettier@3.2.5/plugins/markdown.js");
-    await loadScript("https://unpkg.com/prettier@3.2.5/plugins/postcss.js");
-    await loadScript("https://unpkg.com/prettier@3.2.5/plugins/typescript.js");
+    await loadScript("/local/blueprint_studio/vendor/prettier/babel.js");
+    await loadScript("/local/blueprint_studio/vendor/prettier/estree.js");
+    await loadScript("/local/blueprint_studio/vendor/prettier/yaml.js");
+    await loadScript("/local/blueprint_studio/vendor/prettier/html.js");
+    await loadScript("/local/blueprint_studio/vendor/prettier/markdown.js");
+    await loadScript("/local/blueprint_studio/vendor/prettier/postcss.js");
+    await loadScript("/local/blueprint_studio/vendor/prettier/typescript.js");
 
     // Store plugins for Prettier to use
     window.prettierPlugins = {

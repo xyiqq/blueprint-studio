@@ -34,6 +34,7 @@ export function showCommandPalette(initialMode = "") {
       { id: "git_history", label: t("palette.cmd_git_history"), icon: "history", action: () => eventBus.emit('git:show-history') },
       { id: "validate", label: t("palette.cmd_validate"), icon: "check_circle", action: () => { if (state.activeTab) eventBus.emit('file:validate'); } },
       { id: "restart_ha", label: t("palette.cmd_restart_ha"), icon: "restart_alt", action: () => eventBus.emit('ha:restart') },
+      { id: "config_check", label: "Check HA Configuration", icon: "fact_check", action: () => eventBus.emit('ha:config-check') },
       { id: "toggle_sidebar", label: t("palette.cmd_toggle_sidebar"), icon: "menu", shortcut: "Ctrl+B", action: () => eventBus.emit('ui:toggle-sidebar') },
       { id: "shortcuts", label: t("palette.cmd_shortcuts"), icon: "keyboard", action: () => eventBus.emit('ui:show-shortcuts') },
       { id: "settings", label: t("palette.cmd_settings"), icon: "settings", action: () => eventBus.emit('ui:show-settings') },

@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Jump to Entity (Ctrl+click in editor)** — Ctrl+click (or Cmd+click on Mac) any entity ID in the YAML editor to instantly see a floating popup with the entity's current state, friendly name, domain, icon, and key attributes. A "Copy ID" button lets you copy the entity ID to the clipboard. The popup dismisses on outside click or Escape. No backend call needed — entity data is sourced from the already-loaded autocomplete registry.
+
+- **HA Config Check Runner** — A new `fact_check` toolbar button (and "Check HA Configuration" command palette entry) runs the Home Assistant configuration validator directly from the editor. The backend tries `hass --script check_config` first, falling back to `ha core check` on HAOS. Results appear in a floating bottom-right panel showing pass/fail status and a list of errors with file:line references. Clicking a file reference opens the file in the editor and scrolls to the offending line. The raw checker output is also available under a collapsible "Raw output" section.
+
 ## [2.4.2] - 2026-03-22
 
 ### Added
