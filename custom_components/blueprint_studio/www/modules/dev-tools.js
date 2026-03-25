@@ -27,7 +27,7 @@ function _buildPanel(activeTab) {
   panel.id = PANEL_ID;
   panel.innerHTML = `
     <div class="bdt-header">
-      <span class="material-icons bdt-header-icon">developer_mode</span>
+      <span class="material-icons bdt-header-icon">construction</span>
       <span class="bdt-title">Developer Tools</span>
       <div class="bdt-tabs">
         <button class="bdt-tab-btn" data-tab="actions">Actions</button>

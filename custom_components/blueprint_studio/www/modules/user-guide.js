@@ -49,7 +49,7 @@ const guideContent = [
                     <div class="feature-card-desc">Get intelligent help writing automations, debugging YAML errors, and understanding HA concepts.</div>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-card-icon"><span class="material-icons">developer_mode</span></div>
+                    <div class="feature-card-icon"><span class="material-icons">construction</span></div>
                     <div class="feature-card-title">Developer Tools</div>
                     <div class="feature-card-desc">Test actions, render templates, explore entity states — all without leaving your editor.</div>
                 </div>
@@ -388,7 +388,7 @@ const guideContent = [
         id: 'dev-tools',
         group: 'Advanced',
         title: 'Developer Tools',
-        icon: 'developer_mode',
+        icon: 'construction',
         content: `
             <h1>Built-in HA Developer Tools 🛠️</h1>
             <p>Blueprint Studio includes a floating Developer Tools panel. Test actions, render templates, explore entity states, and check your config — all without leaving your editor.</p>
