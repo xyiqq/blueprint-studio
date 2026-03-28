@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Updated autocomplete and snippets to use modern `action:` syntax** — All 48 autocomplete suggestions in the service/action list, the `snip:automation` and `snip:script` templates, and the validator error examples have been updated from the legacy `service:` key to the modern `action:` key introduced in Home Assistant 2024.8. The user guide hint text has also been updated accordingly.
+
+- **Nested trigger groups: snippet added and validator false-positive fixed (HA 2024.10+)** — A new `snip:trigger_group` snippet inserts a ready-to-use `trigger: or` group with two sub-triggers. The YAML validator no longer raises a `legacy_trigger` warning for `- trigger: or`, `- trigger: and`, or `- trigger: not` lines — these are valid HA 2024.10+ nested trigger group syntax, not legacy `platform:` usage.
+
+- **"Continue on error" snippet (HA 2026.3+)** — A new `snip:continue_on_error` snippet inserts an action step with `continue_on_error: true`, allowing automations to proceed past a failing step without halting.
+
+- **Developer Tools improvements** — Three fixes across the panel:
+  - **Actions tab**: YAML mode placeholder updated to show `action:` instead of `service:`, with a comment noting backward compatibility.
+  - **Config tab**: Added missing **Input buttons** reload entry to the YAML reload grid.
+  - **States tab**: Clicking an entity ID now copies it to the clipboard with a brief "Copied!" confirmation flash, without interfering with row expansion.
+
 ### Added
 
 - **Minimap** — A VS Code-style minimap is now available in the editor. It renders a scaled-down, syntax-coloured overview of the entire file on the right side of the editor, with a semi-transparent viewport indicator showing your current scroll position. Click or drag anywhere on the minimap to jump to that part of the file. The minimap works in both the primary and secondary (split-view) editor panes. Toggle it on or off in **Settings → Editor → Minimap**.

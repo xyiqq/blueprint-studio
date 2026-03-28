@@ -122,7 +122,8 @@ function _actionsPane() {
 target:
   entity_id: light.living_room
 data:
-  brightness: 128"></textarea>
+  brightness: 128
+# 'service:' is also accepted for backward compatibility"></textarea>
         <div class="bdt-action-footer" style="margin-top:8px;">
           <button class="bdt-btn-primary bdt-yaml-perform-btn">
             <span class="material-icons" style="font-size:15px;vertical-align:middle;">play_arrow</span> Perform action
@@ -556,13 +557,24 @@ function _initStates(panel) {
         .join(' · ');
       return `<tr class="bdt-state-row" title="${_esc(e.entity_id)}">
         <td class="bdt-entity-cell">
-          <span class="bdt-entity-id">${_esc(e.entity_id)}</span>
+          <span class="bdt-entity-id" title="Click to copy entity ID">${_esc(e.entity_id)}</span>
           ${e.friendly_name ? `<span class="bdt-friendly-name">${_esc(e.friendly_name)}</span>` : ''}
         </td>
         <td><span class="bdt-state-badge ${cls}">${_esc(e.state)}</span></td>
         <td class="bdt-attrs-cell">${_esc(summary)}</td>
       </tr>`;
     }).join('');
+
+    tbody.querySelectorAll('.bdt-entity-id').forEach(span => {
+      span.addEventListener('click', e => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(span.textContent).then(() => {
+          const orig = span.textContent;
+          span.textContent = 'Copied!';
+          setTimeout(() => { span.textContent = orig; }, 1200);
+        });
+      });
+    });
 
     tbody.querySelectorAll('.bdt-state-row').forEach((row, i) => {
       row.addEventListener('click', () => {
@@ -609,6 +621,7 @@ const RELOAD_ITEMS = [
   { domain: 'input_select',   label: 'Input selects',               icon: 'list' },
   { domain: 'input_text',     label: 'Input texts',                 icon: 'text_fields' },
   { domain: 'input_datetime', label: 'Input datetimes',             icon: 'event' },
+  { domain: 'input_button',   label: 'Input buttons',               icon: 'smart_button' },
   { domain: 'timer',          label: 'Timers',                      icon: 'timer' },
   { domain: 'counter',        label: 'Counters',                    icon: 'tag' },
   { domain: 'schedule',       label: 'Schedules',                   icon: 'schedule' },

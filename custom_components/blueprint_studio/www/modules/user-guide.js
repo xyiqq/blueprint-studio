@@ -85,7 +85,7 @@ const guideContent = [
             <p>Press <code>Ctrl+Space</code> or start typing to trigger intelligent suggestions:</p>
             <ul>
                 <li>Type <code>light.</code> or <code>switch.</code> to see a list of your real Home Assistant entity IDs.</li>
-                <li>Suggestions appear for common YAML keys like <code>service:</code>, <code>entity_id:</code>, <code>condition:</code>, and <code>trigger:</code>.</li>
+                <li>Suggestions appear for common YAML keys like <code>action:</code>, <code>entity_id:</code>, <code>condition:</code>, and <code>trigger:</code>.</li>
                 <li>Entity data is pulled live from your HA instance — it's always up to date.</li>
             </ul>
 

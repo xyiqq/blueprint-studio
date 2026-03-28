@@ -32,6 +32,16 @@ def _is_comment_line(line: str) -> bool:
     return not stripped or stripped.startswith('#')
 
 
+def _is_nested_trigger_group(line: str) -> bool:
+    """Return True if line is a nested trigger group declaration (HA 2024.10+).
+
+    Nested trigger groups use ``- trigger: or`` / ``- trigger: and`` / ``- trigger: not``
+    to combine multiple sub-triggers with logical operators.  These are *not* legacy
+    ``platform:`` syntax and must not be flagged as such.
+    """
+    return bool(re.match(r"^\s*-\s+trigger:\s+(or|and|not)\s*$", line))
+
+
 def _has_jinja_template(value: str) -> bool:
     """Check if value contains Jinja2 template syntax."""
     return '{{' in value or '{%' in value
@@ -193,7 +203,7 @@ def _validate_automation(item: dict, lines: list[str]) -> list[dict]:
                     "type": "missing_action",
                     "message": "Automation missing 'action:' or 'actions:'",
                     "solution": "Add at least one action",
-                    "example": "action:\n  service: light.turn_on",
+                    "example": "action:\n  - action: light.turn_on",
                     "original": line.strip()
                 })
                 break
@@ -256,7 +266,7 @@ def _validate_script(item: dict, lines: list[str], line_num: int) -> list[dict]:
             "type": "missing_script_sequence",
             "message": "Script missing 'sequence:' or 'action:' field",
             "solution": "Add 'sequence:' or 'action:' with script steps",
-            "example": "sequence:\n  - service: light.turn_on\n    target:\n      entity_id: light.bedroom",
+            "example": "sequence:\n  - action: light.turn_on\n    target:\n      entity_id: light.bedroom",
             "original": lines[line_num - 1].strip() if line_num <= len(lines) else "script"
         })
 
@@ -371,16 +381,18 @@ def check_yaml(content: str, strict_mode: bool = True) -> web.Response:
             })
 
         if re.search(YAML_ERROR_PATTERNS["old_trigger_syntax"]["pattern"], line):
-            is_in_triggers = _is_in_triggers_context(lines, line_num)
-            if is_in_triggers:
-                best_practice_warnings.append({
-                    "line": line_num,
-                    "type": "legacy_trigger",
-                    "message": YAML_ERROR_PATTERNS["old_trigger_syntax"]["message"],
-                    "solution": YAML_ERROR_PATTERNS["old_trigger_syntax"]["solution"],
-                    "example": YAML_ERROR_PATTERNS["old_trigger_syntax"]["example"],
-                    "original": line.strip()
-                })
+            # Nested trigger groups (- trigger: or/and/not) are valid HA 2024.10+ syntax.
+            if not _is_nested_trigger_group(line):
+                is_in_triggers = _is_in_triggers_context(lines, line_num)
+                if is_in_triggers:
+                    best_practice_warnings.append({
+                        "line": line_num,
+                        "type": "legacy_trigger",
+                        "message": YAML_ERROR_PATTERNS["old_trigger_syntax"]["message"],
+                        "solution": YAML_ERROR_PATTERNS["old_trigger_syntax"]["solution"],
+                        "example": YAML_ERROR_PATTERNS["old_trigger_syntax"]["example"],
+                        "original": line.strip()
+                    })
 
         if strict_mode and re.match(r"^\s*trigger:\s*$", line):
             indent = len(line) - len(line.lstrip())
