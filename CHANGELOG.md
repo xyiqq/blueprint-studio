@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **File tree: increased indentation per nesting level** — Each depth level in the file tree (both local and SFTP) now indents by 24 px instead of 16 px, making it easier to tell which level a file belongs to when many folders are expanded.
+
 - **Blueprint converter: `addon:` data key is now parameterised** — The automation-to-blueprint converter now extracts `addon:` values under action `data:` blocks (e.g. `hassio.addon_restart`, `hassio.addon_start`) into an `addon_id` input with a `text` selector, defaulting to the slug found in the automation. Previously the add-on ID was left hardcoded in the generated blueprint body.
 
 - **Blueprint converter: per-day time inputs named after trigger id** — When a time trigger has a sibling `id:` key (e.g. `id: mon_off`), the generated input is now named `mon_off_time` instead of the generic `trigger_time_N`. This makes weekly-schedule blueprints self-documenting and gives each day's off-time a meaningful label in the blueprint form.
