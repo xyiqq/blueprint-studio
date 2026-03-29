@@ -232,11 +232,6 @@ export async function initTerminal() {
         sshSelect.onchange = () => {
             const val = sshSelect.value;
             if (!val) return;
-            if (val === 'manage') {
-                showSshManager();
-                sshSelect.value = "";
-                return;
-            }
             try {
                 const host = JSON.parse(val);
                 const cmd = buildSshCommand(host);
@@ -535,10 +530,6 @@ export function updateSshDropdown() {
             sshSelect.appendChild(opt);
         });
     }
-    const manageOption = document.createElement('option');
-    manageOption.value = "manage";
-    manageOption.text = t("ssh.manage");
-    sshSelect.appendChild(manageOption);
 }
 
 async function showSshManager() {

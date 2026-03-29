@@ -46,14 +46,34 @@ export async function loadSettings() {
     state.showHidden = settings.showHidden || false;
     state.terminalVisible = settings.terminalVisible || false;
 
-    // Load SSH hosts with backward compatibility migration (Phase 1)
-    // Migrate old SSH hosts without SSH key fields to new schema
-    state.sshHosts = (settings.sshHosts || []).map(host => ({
+    // Load SSH hosts — unified store for both terminal and SFTP.
+    // Phase 1: ensure all schema fields exist.
+    // Phase 2: migrate legacy sftpConnections into sshHosts (one-time).
+    const rawSshHosts = (settings.sshHosts || []).map(host => ({
       ...host,
-      authType: host.authType || 'password',        // Default to password for backward compat
-      privateKey: host.privateKey || '',            // Empty key by default
-      privateKeyPassphrase: host.privateKeyPassphrase || ''  // Empty passphrase by default
+      id: host.id || ('host-' + Math.random().toString(36).slice(2, 10)),
+      authType: host.authType || 'password',
+      privateKey: host.privateKey || '',
+      privateKeyPassphrase: host.privateKeyPassphrase || ''
     }));
+    // Merge any legacy sftpConnections that are not already in sshHosts
+    const legacySftp = settings.sftpConnections || [];
+    legacySftp.forEach(conn => {
+      if (!rawSshHosts.find(h => h.id === conn.id)) {
+        rawSshHosts.push({
+          id: conn.id,
+          name: conn.name || `${conn.username}@${conn.host}`,
+          host: conn.host,
+          port: conn.port || 22,
+          username: conn.username,
+          authType: conn.authType || 'password',
+          password: conn.password || '',
+          privateKey: conn.privateKey || '',
+          privateKeyPassphrase: conn.privateKeyPassphrase || ''
+        });
+      }
+    });
+    state.sshHosts = rawSshHosts;
 
     state.defaultSshHost = settings.defaultSshHost || "local";
     state.showRecentFiles = settings.showRecentFiles !== false;
@@ -129,8 +149,8 @@ export async function loadSettings() {
     state.fileCacheSize = parseInt(settings.fileCacheSize) || 10;
     state.enableVirtualScroll = settings.enableVirtualScroll || false;
 
-    // SFTP settings
-    state.sftpConnections = settings.sftpConnections || [];
+    // SFTP settings — connections now live in sshHosts (unified store)
+    state.sftpConnections = state.sshHosts; // alias: SFTP reads the same array
     state.sftpPanelCollapsed = settings.sftpPanelCollapsed || false;
     state.sftpPanelHeight = settings.sftpPanelHeight || 300;
     state.activeSftp.connectionId = settings.activeSftpConnectionId || null;
@@ -323,8 +343,7 @@ export async function saveSettings() {
       remoteFetchInterval: state.remoteFetchInterval,
       fileCacheSize: state.fileCacheSize,
       enableVirtualScroll: state.enableVirtualScroll,
-      // SFTP settings
-      sftpConnections: state.sftpConnections,
+      // SFTP settings — connections are stored in sshHosts (unified store)
       sftpPanelCollapsed: state.sftpPanelCollapsed,
       sftpPanelHeight: state.sftpPanelHeight,
       activeSftpConnectionId: state.activeSftp.connectionId,

@@ -552,12 +552,24 @@ export function renderTreeLevel(tree, container, depth) {
 
     if (isExpanded && !isLoading) {
       // Only render children if expanded and not currently loading
-      renderTreeLevel(folderData, fragment, depth + 1);
+      const childFolders = Object.keys(folderData).filter(k => !k.startsWith('_'));
+      const childFiles = folderData._files || [];
+      if (childFolders.length === 0 && childFiles.length === 0) {
+        const emptyItem = document.createElement('div');
+        emptyItem.className = 'tree-item';
+        emptyItem.style.setProperty('--depth', depth + 1);
+        emptyItem.style.color = 'var(--text-secondary)';
+        emptyItem.style.pointerEvents = 'none';
+        emptyItem.innerHTML = '<div class="tree-chevron hidden"></div><span class="tree-name" style="font-style:italic">(empty)</span>';
+        fragment.appendChild(emptyItem);
+      } else {
+        renderTreeLevel(folderData, fragment, depth + 1);
+      }
     } else if (isExpanded && isLoading) {
       // Show loading placeholder
       const loadingItem = document.createElement("div");
       loadingItem.className = "tree-item loading-item";
-      loadingItem.style.paddingLeft = `${(depth + 1) * 20 + 12}px`;
+      loadingItem.style.setProperty('--depth', depth + 1);
       loadingItem.innerHTML = `
         <span class="material-icons loading-spinner">sync</span>
         <span class="tree-name">${t("common.loading")}</span>

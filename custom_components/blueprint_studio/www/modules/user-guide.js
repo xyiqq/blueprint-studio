@@ -300,11 +300,15 @@ const guideContent = [
             <p>Click the SFTP cloud icon in the Activity Bar (left edge of the sidebar). The SFTP panel shows all your saved connections.</p>
 
             <h2>Adding a Connection</h2>
+            <p>Hosts are managed centrally in <strong>Settings → Integrations → Hosts</strong> and shared between the SFTP panel and the terminal SSH dropdown. You can also add a host directly from the SFTP panel using the <strong>"Add Connection"</strong> button — it opens the same form and saves to the same list.</p>
             <ol>
-                <li>Click <strong>"Add Connection"</strong> in the SFTP panel.</li>
+                <li>Open <strong>Settings → Integrations → Hosts</strong> (or click "Add Connection" in the SFTP panel).</li>
                 <li>Fill in the server details: name, host, port (default: 22), username, and authentication (password or SSH key).</li>
-                <li>Save the connection — it's stored securely on your HA instance.</li>
+                <li>Save the connection — it's stored securely on your HA instance and immediately available in both SFTP and terminal.</li>
             </ol>
+
+            <h2>Editing or Removing a Connection</h2>
+            <p>Select a host in the SFTP panel dropdown — the edit (<strong>✏</strong>) and delete (<strong>🗑</strong>) buttons appear immediately, even before connecting. You can also manage all hosts from <strong>Settings → Integrations → Hosts</strong>.</p>
 
             <h2>Browsing &amp; Editing Remote Files</h2>
             <ul>
@@ -322,6 +326,9 @@ const guideContent = [
 
             <h2>Setting a Default SSH Host for Terminal</h2>
             <p>In <strong>Settings → Integrations</strong>, you can set a default SSH host for the integrated terminal. When you open the terminal, it will automatically connect to that host instead of the local shell.</p>
+
+            <h2>File Tree Indentation</h2>
+            <p>When browsing deeply nested directories (common with SFTP), each folder level is indented by 24 px, making it easy to see which level a file belongs to at a glance. Empty folders show an italic <em>(empty)</em> label when expanded.</p>
 
             <div class="user-guide-tip">
                 <div class="user-guide-tip-title"><span class="material-icons">info</span> Use Cases</div>
@@ -551,7 +558,7 @@ const guideContent = [
             <ul>
                 <li>Enable Terminal integration in <strong>Settings → Integrations</strong>.</li>
                 <li>Press <code>Ctrl+\`</code> or click the terminal icon to open/close the terminal panel.</li>
-                <li>Supports multiple <strong>SSH host profiles</strong> — configure multiple servers and switch between them in the terminal dropdown.</li>
+                <li><strong>Supports multiple <strong>SSH host profiles</strong></strong> — add and manage hosts in <strong>Settings → Integrations → Hosts</strong>, then select one from the terminal dropdown to connect instantly.</li>
                 <li>Right-click any file in the tree and select <strong>"Run in Terminal"</strong> to open a terminal navigated to that file's directory.</li>
                 <li>Set a <strong>default SSH host</strong> in Settings so the terminal connects automatically to your preferred server on open.</li>
             </ul>
@@ -647,13 +654,17 @@ const guideContent = [
                 <li><strong>Auto-Save:</strong> Enable to automatically save files after a delay (configurable in milliseconds).</li>
                 <li><strong>One Tab Mode:</strong> Focused workflow — opening a new file auto-saves and closes all other tabs.</li>
                 <li><strong>Syntax Theme:</strong> Choose a code highlighting preset (Material, Monokai, GitHub, Solarized, etc.) or create a <strong>Custom Syntax Theme</strong> by setting individual token colors.</li>
+                <li><strong>Minimap:</strong> Show a scaled-down overview of the entire file on the right side of the editor with a viewport indicator.</li>
+                <li><strong>Split View:</strong> Edit two files simultaneously side-by-side or stacked. Toggle with <code>Ctrl+\</code> or the split button in the toolbar.</li>
             </ul>
 
             <h2>Integrations Tab</h2>
             <ul>
                 <li><strong>VCS (Version Control):</strong> Enable GitHub or Gitea integration and configure credentials.</li>
-                <li><strong>Terminal:</strong> Enable SSH terminal integration and configure default SSH host profiles.</li>
-                <li><strong>Git Exclusions:</strong> Manage <code>.gitignore</code> through a simple UI.</li>
+                <li><strong>Git Exclusions:</strong> Manage <code>.gitignore</code> through a simple UI. Appears before SFTP in the tab.</li>
+                <li><strong>SFTP:</strong> Enable SFTP file browsing and configure remote hosts.</li>
+                <li><strong>Terminal:</strong> Enable SSH terminal integration. Select a saved host from the dropdown — no host management in the terminal itself.</li>
+                <li><strong>Hosts:</strong> Central list of SSH/SFTP hosts shared between the SFTP panel and the terminal dropdown. Add, edit, or delete hosts here — changes reflect immediately in both places.</li>
                 <li><strong>AI Integration:</strong> Enable and configure your AI provider (Rule-based, Local AI, or Cloud AI).</li>
             </ul>
 
@@ -667,7 +678,6 @@ const guideContent = [
             </ul>
             <p><strong>Experimental</strong></p>
             <ul>
-                <li><strong>Split View <span style="font-size:11px;padding:2px 5px;background:var(--warning-color,#f59e0b);color:#000;border-radius:3px;">BETA</span>:</strong> Enable the split editor feature. When active, you can open two files side-by-side or stacked. Toggle orientation with the split button in the toolbar.</li>
                 <li><strong>Clear PWA Token:</strong> Resets the authentication token used by the installed PWA (Progressive Web App). Use this if you're having login issues with the installed app version.</li>
             </ul>
             <p><strong>Danger Zone</strong></p>

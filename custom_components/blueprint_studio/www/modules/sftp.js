@@ -7,11 +7,12 @@ import { enableLongPressContextMenu } from './utils.js';
 import { eventBus } from './event-bus.js';
 import { API_BASE, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS, AUDIO_EXTENSIONS } from './constants.js';
 import { fetchWithAuth, getAuthToken } from './api.js';
-import { 
-  showToast, 
-  showConfirmDialog, 
-  showModal as showInputModal 
+import {
+  showToast,
+  showConfirmDialog,
+  showModal as showInputModal
 } from './ui.js';
+import { updateSshDropdown } from './terminal.js';
 
 // ─── Visibility ───────────────────────────────────────────────────────────────
 
@@ -197,6 +198,7 @@ export function renderSftpPanel() {
     });
     
     select.onchange = (e) => {
+      _updateDynamicButtons(e.target.value || null);
       if (e.target.value) connectToServer(e.target.value);
     };
     
@@ -207,33 +209,39 @@ export function renderSftpPanel() {
   if (headerActions) {
     // Remove existing dynamic buttons (edit/delete) but keep add/refresh
     headerActions.querySelectorAll('.sftp-dynamic-btn').forEach(btn => btn.remove());
-    
-    if (state.activeSftp.connectionId) {
-      const currentId = state.activeSftp.connectionId;
-      
-      const editBtn = document.createElement('button');
-      editBtn.className = 'sidebar-header-btn sftp-dynamic-btn';
-      editBtn.title = t("common.edit") || "Edit connection";
-      editBtn.innerHTML = '<span class="material-icons">edit</span>';
-      editBtn.onclick = () => showEditConnectionDialog(currentId);
-      
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'sidebar-header-btn sftp-dynamic-btn';
-      deleteBtn.title = t("common.delete") || "Remove connection";
-      deleteBtn.innerHTML = '<span class="material-icons">delete_outline</span>';
-      deleteBtn.onclick = () => deleteConnection(currentId);
-      
-      // Insert before the refresh button
-      const refreshBtn = document.getElementById('btn-sftp-refresh');
-      if (refreshBtn) {
-        headerActions.insertBefore(editBtn, refreshBtn);
-        headerActions.insertBefore(deleteBtn, refreshBtn);
-      } else {
-        headerActions.appendChild(editBtn);
-        headerActions.appendChild(deleteBtn);
-      }
+  }
+
+  function _updateDynamicButtons(connId) {
+    if (!headerActions) return;
+    headerActions.querySelectorAll('.sftp-dynamic-btn').forEach(btn => btn.remove());
+    if (!connId) return;
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'sidebar-header-btn sftp-dynamic-btn';
+    editBtn.title = t("common.edit") || "Edit connection";
+    editBtn.innerHTML = '<span class="material-icons">edit</span>';
+    editBtn.onclick = () => showEditConnectionDialog(connId);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'sidebar-header-btn sftp-dynamic-btn';
+    deleteBtn.title = t("common.delete") || "Remove connection";
+    deleteBtn.innerHTML = '<span class="material-icons">delete_outline</span>';
+    deleteBtn.onclick = () => deleteConnection(connId);
+
+    const refreshBtn = document.getElementById('btn-sftp-refresh');
+    if (refreshBtn) {
+      headerActions.insertBefore(editBtn, refreshBtn);
+      headerActions.insertBefore(deleteBtn, refreshBtn);
+    } else {
+      headerActions.appendChild(editBtn);
+      headerActions.appendChild(deleteBtn);
     }
   }
+
+  // Show edit/delete for whichever connection is selected (active or just highlighted)
+  const selectedConnId = state.activeSftp.connectionId ||
+    (state.sftpConnections.length === 1 ? state.sftpConnections[0].id : null);
+  _updateDynamicButtons(selectedConnId);
 
   // ── File tree (only when a connection is active) ──────────────────────────
   const { connectionId, currentPath, folders, files, loading } = state.activeSftp;
@@ -1118,6 +1126,9 @@ function _attachDialogEvents(editingConn = null) {
     showToast(t("toast.sftp_conn_success", { error: result.message }), 'success');
     if (editingConn) { const idx = state.sftpConnections.findIndex(c => c.id === conn.id); if (idx >= 0) state.sftpConnections[idx] = conn; }
     else state.sftpConnections.push(conn);
+    // Keep sshHosts alias in sync (may have been replaced by filter elsewhere)
+    state.sshHosts = state.sftpConnections;
+    updateSshDropdown();
     eventBus.emit("settings:save"); overlay.remove(); renderSftpPanel();
   });
 }
@@ -1328,7 +1339,12 @@ export async function deleteConnection(connId) {
 
   if (!confirmed) return;
 
-  state.sftpConnections = state.sftpConnections.filter(c => c.id !== connId);
+  // Remove from the unified sshHosts array (sftpConnections is an alias to the same array)
+  const idx = state.sshHosts.findIndex(c => c.id === connId);
+  if (idx >= 0) state.sshHosts.splice(idx, 1);
+  // Keep the alias in sync in case it was replaced elsewhere
+  state.sftpConnections = state.sshHosts;
+  updateSshDropdown();
   if (state.activeSftp.connectionId === connId) {
     state.activeSftp.connectionId    = null;
     state.activeSftp.folders         = [];
@@ -1342,7 +1358,7 @@ export async function deleteConnection(connId) {
 }
 
 function _generateId() {
-  return 'sftp-' + Math.random().toString(36).slice(2, 10);
+  return 'host-' + Math.random().toString(36).slice(2, 10);
 }
 
 export function showAddConnectionDialog() {

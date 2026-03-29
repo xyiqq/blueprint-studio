@@ -6,6 +6,7 @@ import { eventBus } from './event-bus.js';
 import { API_BASE, THEME_PRESETS, ACCENT_COLORS, SYNTAX_THEMES } from './constants.js';
 import { showToast, showConfirmDialog } from './ui.js';
 import { t, initTranslations } from './translations.js';
+import { showAddConnectionDialog, showEditConnectionDialog, deleteConnection } from './sftp.js';
 
 /**
  * Show the application settings modal
@@ -311,6 +312,17 @@ export async function showAppSettings() {
               </label>
             </div>
 
+            <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
+              <div style="flex: 1;">
+                <div style="font-weight: 500; margin-bottom: 4px;">${t("settings.advanced.split_view")}</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">${t("settings.advanced.split_view_hint")}</div>
+              </div>
+              <label class="toggle-switch" style="margin-left: 16px;">
+                <input type="checkbox" id="split-view-toggle" ${state.enableSplitView ? 'checked' : ''}>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
             <div class="git-settings-label" style="margin-top: 20px;">${t("settings.editor.autosave")}</div>
 
             <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
@@ -386,6 +398,7 @@ export async function showAppSettings() {
                 Reset to Default Colors
               </button>
             </div>
+
           </div>
         </div>
 
@@ -414,6 +427,16 @@ export async function showAppSettings() {
                 <input type="checkbox" id="gitea-integration-toggle" ${state.giteaIntegrationEnabled ? 'checked' : ''}>
                 <span class="toggle-slider"></span>
               </label>
+            </div>
+
+            <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
+              <div style="flex: 1;">
+                <div style="font-weight: 500; margin-bottom: 4px;">${t("settings.integrations.exclusions")}</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">${t("settings.integrations.exclusions_hint")}</div>
+              </div>
+              <button class="btn-secondary" id="btn-manage-exclusions" style="padding: 6px 12px; font-size: 12px;">
+                ${t("settings.integrations.exclusions_btn")}
+              </button>
             </div>
 
             <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
@@ -455,13 +478,26 @@ export async function showAppSettings() {
               </div>
             </div>
 
-            <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
-              <div style="flex: 1;">
-                <div style="font-weight: 500; margin-bottom: 4px;">${t("settings.integrations.exclusions")}</div>
-                <div style="font-size: 12px; color: var(--text-secondary);">${t("settings.integrations.exclusions_hint")}</div>
+            <div class="git-settings-label" style="margin-top: 20px;">Hosts</div>
+
+            <div style="padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">Saved hosts are shared between SFTP and terminal SSH.</div>
+              <div id="settings-hosts-list" style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px;">
+                ${(state.sshHosts || []).length === 0
+                  ? `<div style="padding: 12px; text-align: center; color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px;">No hosts saved yet</div>`
+                  : (state.sshHosts || []).map((host, i) => `
+                  <div style="display: flex; align-items: center; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 4px; gap: 8px;">
+                    <span class="material-icons" style="font-size: 16px; color: var(--text-secondary); flex-shrink: 0;">dns</span>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-weight: 500; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${host.name || host.host}</div>
+                      <div style="font-size: 11px; color: var(--text-secondary);">${host.username}@${host.host}:${host.port || 22} &nbsp;·&nbsp; ${host.authType === 'key' ? '🔑 Key' : '🔐 Password'}</div>
+                    </div>
+                    <button class="icon-btn settings-host-edit" data-id="${host.id}" style="color: var(--accent-color); padding: 4px;"><span class="material-icons" style="font-size: 16px;">edit</span></button>
+                    <button class="icon-btn settings-host-delete" data-id="${host.id}" style="color: var(--error-color); padding: 4px;"><span class="material-icons" style="font-size: 16px;">delete</span></button>
+                  </div>`).join('')}
               </div>
-              <button class="btn-secondary" id="btn-manage-exclusions" style="padding: 6px 12px; font-size: 12px;">
-                ${t("settings.integrations.exclusions_btn")}
+              <button id="btn-settings-add-host" class="btn-secondary" style="width: 100%; padding: 8px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span class="material-icons" style="font-size: 16px;">add</span> Add Host
               </button>
             </div>
 
@@ -709,19 +745,6 @@ export async function showAppSettings() {
             <div class="git-settings-label" style="margin-top: 20px;">${t("settings.advanced.experimental")}</div>
             <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
               ${t("settings.advanced.experimental_hint")}
-            </div>
-
-            <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
-              <div style="flex: 1;">
-                <div style="font-weight: 500; margin-bottom: 4px;">
-                  ${t("settings.advanced.split_view")} <span style="font-size: 11px; padding: 2px 6px; background: var(--warning-color); color: #000; border-radius: 3px; margin-left: 6px;">BETA</span>
-                </div>
-                <div style="font-size: 12px; color: var(--text-secondary);">${t("settings.advanced.split_view_hint")}</div>
-              </div>
-              <label class="toggle-switch" style="margin-left: 16px;">
-                <input type="checkbox" id="split-view-toggle" ${state.enableSplitView ? 'checked' : ''}>
-                <span class="toggle-slider"></span>
-              </label>
             </div>
 
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
@@ -1541,6 +1564,33 @@ export async function showAppSettings() {
 
         await saveSettingsImpl();
         showToast(t("toast.ai_settings_applied"), "success");
+      });
+    }
+
+    // Handle Hosts section in integrations tab
+    const btnAddHost = document.getElementById('btn-settings-add-host');
+    if (btnAddHost) {
+      btnAddHost.addEventListener('click', () => {
+        closeSettings();
+        showAddConnectionDialog();
+      });
+    }
+    const hostsList = document.getElementById('settings-hosts-list');
+    if (hostsList) {
+      hostsList.addEventListener('click', async (e) => {
+        const editBtn = e.target.closest('.settings-host-edit');
+        if (editBtn) {
+          closeSettings();
+          showEditConnectionDialog(editBtn.dataset.id);
+          return;
+        }
+        const delBtn = e.target.closest('.settings-host-delete');
+        if (delBtn) {
+          const confirmed = await showConfirmDialog({ title: 'Remove host', message: 'Remove this host?', isDanger: true });
+          if (confirmed) {
+            await deleteConnection(delBtn.dataset.id);
+          }
+        }
       });
     }
 

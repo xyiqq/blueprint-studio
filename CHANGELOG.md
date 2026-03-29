@@ -8,9 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Hosts management in Settings → Integrations** — A new "Hosts" section lets you add, edit, and delete SSH/SFTP hosts from one central place. Hosts are shared across the SFTP panel and the terminal SSH dropdown, so you only need to configure a connection once. Each host shows its name, address, port, username, and auth method (password or key) at a glance.
+
 ### Changed
 
-- **File tree: increased indentation per nesting level** — Each depth level in the file tree (both local and SFTP) now indents by 24 px instead of 16 px, making it easier to tell which level a file belongs to when many folders are expanded.
+- **Split view moved to Editor settings** — The split view toggle is now in **Settings → Editor → Behavior** alongside word wrap, line numbers, minimap, and other editor options. The BETA label has been removed. It was previously in the Advanced tab. — Each depth level in the file tree (both local and SFTP) now indents by 24 px instead of 16 px, making it easier to tell which level a file belongs to when many folders are expanded.
+
+- **File tree: empty folders now show an `(empty)` placeholder** — When an expanded folder contains no files or subfolders, an italic "(empty)" label is shown at the correct indent level, matching the existing behaviour in the SFTP tree.
+
+- **SFTP panel: edit and delete buttons visible before connecting** — The edit and delete buttons for a saved host now appear as soon as a connection is selected in the SFTP dropdown, not only after a successful connection. This makes it possible to fix wrong credentials without having to connect first.
+
+- **SFTP panel: connections now sourced from the unified Hosts store** — The SFTP connection list is no longer a separate setting. It reads from the same host list used by the terminal, and any host added through the SFTP "Add connection" dialog is immediately available in the terminal SSH dropdown as well. Existing `sftpConnections` saved in settings are automatically migrated into the unified list on first load.
+
+- **Terminal: SSH dropdown simplified to host selection only** — The "Manage hosts" option has been removed from the terminal SSH dropdown. Host management is now done exclusively in Settings → Integrations → Hosts.
 
 - **Blueprint converter: `addon:` data key is now parameterised** — The automation-to-blueprint converter now extracts `addon:` values under action `data:` blocks (e.g. `hassio.addon_restart`, `hassio.addon_start`) into an `addon_id` input with a `text` selector, defaulting to the slug found in the automation. Previously the add-on ID was left hardcoded in the generated blueprint body.
 
