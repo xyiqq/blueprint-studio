@@ -266,7 +266,7 @@ LIBRARIES = [
     {
         "name": "PDF.js",
         "npm": "pdfjs-dist",
-        "current": "4.6.82",
+        "current": "4.10.38",
         "files": [
             {
                 "url": "https://cdn.jsdelivr.net/npm/pdfjs-dist@{version}/build/pdf.min.mjs",
@@ -448,9 +448,13 @@ def fetch_latest_cdnjs(package: str, max_major: int | None = None) -> str | None
 
 def fetch_latest_version(lib: dict) -> str | None:
     """Resolve the latest version for a library entry."""
+    # Hard pin — never update beyond this version
+    if "pinned_version" in lib:
+        return lib["pinned_version"]
+
     max_major = lib.get("max_major")
 
-    # Prefer cdnjs when specified (better for CoedMirror 5.x, highlight.js)
+    # Prefer cdnjs when specified (better for CodeMirror 5.x, highlight.js)
     if "cdnjs" in lib:
         ver = fetch_latest_cdnjs(lib["cdnjs"], max_major)
         if ver:
