@@ -7,7 +7,7 @@
   function markedHighlight(options) {
     if (typeof options === 'function') {
       options = {
-        highlight: options
+        highlight: options,
       };
     }
 
@@ -17,6 +17,10 @@
 
     if (typeof options.langPrefix !== 'string') {
       options.langPrefix = 'language-';
+    }
+
+    if (typeof options.emptyLangClass !== 'string') {
+      options.emptyLangClass = '';
     }
 
     return {
@@ -38,16 +42,24 @@
         }
         updateToken(token)(code);
       },
+      useNewRenderer: true,
       renderer: {
         code(code, infoString, escaped) {
+          // istanbul ignore next
+          if (typeof code === 'object') {
+            escaped = code.escaped;
+            infoString = code.lang;
+            code = code.text;
+          }
           const lang = getLang(infoString);
-          const classAttr = lang
-            ? ` class="${options.langPrefix}${escape(lang)}"`
+          const classValue = lang ? options.langPrefix + escape(lang) : options.emptyLangClass;
+          const classAttr = classValue
+            ? ` class="${classValue}"`
             : '';
           code = code.replace(/\n$/, '');
           return `<pre><code${classAttr}>${escaped ? code : escape(code, true)}\n</code></pre>`;
-        }
-      }
+        },
+      },
     };
   }
 
@@ -74,7 +86,7 @@
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    "'": '&#39;'
+    "'": '&#39;',
   };
   const getEscapeReplacement = (ch) => escapeReplacements[ch];
   function escape(html, encode) {
