@@ -277,7 +277,8 @@ import {
   initTerminal as initTerminalImpl,
   openTerminalTab as openTerminalTabImpl,
   closeTerminalTab as closeTerminalTabImpl,
-  onTerminalTabClosed as onTerminalTabClosedImpl
+  onTerminalTabClosed as onTerminalTabClosedImpl,
+  isTerminalFocused
 } from '../terminal.js';
 
 import {
@@ -709,6 +710,10 @@ export function initializeEventHandlers() {
 
   // Keyboard shortcuts - using capture phase to intercept before browser
   window.addEventListener("keydown", (e) => {
+    // When the terminal has focus, all keystrokes belong to the PTY.
+    // Do not intercept anything — let xterm handle it.
+    if (isTerminalFocused()) return;
+
     // Ctrl + Shift + ] - Next Tab (all platforms, including macOS)
     const isNextTabShortcut =
       (e.key === "]" || e.key === "}" || e.code === "BracketRight") &&

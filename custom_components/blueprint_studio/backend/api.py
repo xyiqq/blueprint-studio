@@ -62,7 +62,7 @@ class BlueprintStudioApiView(HomeAssistantView):
         self.git = GitManager(None, config_dir, data, store)
         self.ai = AIManager(None, data)
         self.file = FileManager(None, config_dir)
-        self.sftp = SftpManager()
+        self.sftp = SftpManager(config_dir)
         self.terminal = None
 
     async def _authenticate(self, request):

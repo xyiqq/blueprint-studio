@@ -153,8 +153,7 @@ export async function initTerminal() {
             const newHeight = rect.bottom - clientY;
             if (newHeight > 100 && newHeight < window.innerHeight - 50) {
                 terminalContainer.style.height = newHeight + 'px';
-                if (fitAddon) fitAddon.fit();
-                if (socket && socket.readyState === WebSocket.OPEN) sendResize();
+                safeFit();
             }
         }
 
@@ -164,10 +163,7 @@ export async function initTerminal() {
             window.removeEventListener('touchmove', doDrag);
             window.removeEventListener('touchend', stopDrag);
             document.body.style.cursor = '';
-            if (fitAddon) {
-                fitAddon.fit();
-                sendResize();
-            }
+            safeFit();
         }
 
         // Header
@@ -298,17 +294,11 @@ export async function initTerminal() {
 
         window.addEventListener('resize', () => {
             if ((state.terminalVisible || isTerminalInTab) && fitAddon) {
-                fitAddon.fit();
-                sendResize();
+                safeFit();
             }
         });
-        
-        setTimeout(() => {
-            if (fitAddon) {
-                fitAddon.fit();
-                sendResize();
-            }
-        }, 100);
+
+        setTimeout(() => safeFit(), 100);
         
         return true;
     })();
@@ -338,11 +328,13 @@ async function connectSocket() {
     socket.binaryType = 'arraybuffer';
 
     socket.onopen = () => {
+        // Reset cursor key mode left over from the previous session.
+        // \x1b[?1l disables application cursor key mode (DECCKM off) so arrow
+        // keys send normal CSI sequences (^[[A/B/C/D) instead of SS3 (^[OA/B/C/D).
+        // \x1b[?7h re-enables auto-wrap which a previous session may have turned off.
+        term.write('\x1b[?1l\x1b[?7h');
         term.write('\x1b[1;32mConnected to Terminal.\x1b[0m\r\n');
-        if (fitAddon) {
-            fitAddon.fit();
-            sendResize();
-        }
+        safeFit();
 
         if (state.defaultSshHost && state.defaultSshHost !== 'local' && !socket._hasAutoConnected) {
             socket._hasAutoConnected = true;
@@ -392,12 +384,31 @@ export function getTerminalContainer() {
     return terminalContainer;
 }
 
-export function fitTerminal() {
-    if (fitAddon) {
-        fitAddon.fit();
-        sendResize();
+export function isTerminalFocused() {
+    if (!term || !terminalContainer) return false;
+    const active = document.activeElement;
+    // xterm renders into a <textarea> or <canvas> inside the container
+    return terminalContainer.contains(active) || term.element?.contains(active);
+}
+
+function safeFit() {
+    if (!fitAddon) return;
+    try {
+        const dims = fitAddon.proposeDimensions();
+        if (dims && dims.cols && dims.rows) {
+            fitAddon.fit();
+            sendResize();
+        }
+    } catch (e) {
+        // Renderer not ready yet — ignore
     }
-    if (term) term.focus();
+}
+
+export function fitTerminal() {
+    requestAnimationFrame(() => {
+        safeFit();
+        if (term) term.focus();
+    });
 }
 
 export function setTerminalMode(mode) {

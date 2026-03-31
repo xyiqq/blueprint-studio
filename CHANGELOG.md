@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **No SSH host key verification (MITM)** — SFTP and Paramiko-based SSH terminal sessions previously used `AutoAddPolicy`, which accepted any server key unconditionally — including changed keys on subsequent connections. Host key verification is now enforced using a Trust-On-First-Use (TOFU) policy: the server key is trusted and saved to `<config_dir>/.ssh/known_hosts` on first contact, and any key change on a later connection raises an error to prevent silent man-in-the-middle attacks. Both SFTP and terminal sessions share the same `known_hosts` file.
+
 - **Indentation size not persisting across sessions** — Tab size (e.g. 2 spaces) was saved correctly but not re-applied to the editor on startup. `applyEditorSettings` was missing `indentUnit`, `tabSize`, and `indentWithTabs` options, so the editor would revert to its default indentation until the setting was manually toggled. These options are now applied consistently on every settings load.
 
 ### Changed

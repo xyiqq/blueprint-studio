@@ -71,11 +71,14 @@ async def handle_terminal_ws(request, user, hass, terminal_manager):
 
     def cleanup_pty(pty_pid, pty_fd):
         """Helper to clean up PTY resources."""
-        try:
-            os.kill(pty_pid, signal.SIGTERM)
-            os.waitpid(pty_pid, os.WNOHANG)
-        except OSError:
-            pass
+        # pid == -1 is the sentinel for Paramiko sessions (no child process).
+        # Never send a signal in that case — pid -1 means "all processes" on Linux.
+        if pty_pid != -1:
+            try:
+                os.kill(pty_pid, signal.SIGTERM)
+                os.waitpid(pty_pid, os.WNOHANG)
+            except OSError:
+                pass
         try:
             os.close(pty_fd)
         except OSError:
@@ -166,6 +169,8 @@ async def handle_terminal_ws(request, user, hass, terminal_manager):
                                         key_passphrase=ssh_config.get('privateKeyPassphrase')
                                     )
                                     hass.loop.add_reader(master_fd, forward_output)
+                                    # Reset application cursor key mode so arrow keys work correctly
+                                    await ws.send_str('\x1b[?1l\x1b[?7h')
                                     _LOGGER.info("SSH PTY spawned successfully")
                                 except Exception as spawn_error:
                                     _LOGGER.error("Failed to spawn SSH PTY: %s", spawn_error)
@@ -195,6 +200,8 @@ async def handle_terminal_ws(request, user, hass, terminal_manager):
                                         password=ssh_config.get('password')
                                     )
                                     hass.loop.add_reader(master_fd, forward_output)
+                                    # Reset application cursor key mode so arrow keys work correctly
+                                    await ws.send_str('\x1b[?1l\x1b[?7h')
                                     _LOGGER.info("SSH PTY with password spawned successfully")
                                 except Exception as spawn_error:
                                     _LOGGER.error("Failed to spawn SSH PTY with password: %s", spawn_error)

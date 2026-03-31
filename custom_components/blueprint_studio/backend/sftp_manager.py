@@ -44,7 +44,8 @@ class SftpManager:
     ``_idle_timeout`` seconds.  The pool is capped at ``_max_pool_size``.
     """
 
-    def __init__(self):
+    def __init__(self, config_dir=None):
+        self._config_dir = config_dir
         self._pool: dict[tuple, dict] = {}  # key → {transport, sftp, last_used}
         self._pool_lock = threading.Lock()
         self._key_locks: dict[tuple, threading.Lock] = {}  # per-host serialization
@@ -188,6 +189,73 @@ class SftpManager:
         finally:
             lock.release()
 
+    def _known_hosts_path(self):
+        """Return the path to the shared known_hosts file, or None if config_dir is unset."""
+        if self._config_dir is None:
+            return None
+        import os
+        return os.path.join(str(self._config_dir), ".ssh", "known_hosts")
+
+    def _verify_host_key(self, transport, host: str, port: int):
+        """Verify the server's host key against known_hosts (TOFU on first connect).
+
+        Raises paramiko.SSHException if the key has changed since the last
+        connection — this is the signal that a MITM may be present.
+        Adds the key to known_hosts on first contact.
+        """
+        import paramiko
+
+        known_hosts_path = self._known_hosts_path()
+        server_key = transport.get_remote_server_key()
+        host_id = f"[{host}]:{port}" if port != 22 else host
+
+        if known_hosts_path is None:
+            _LOGGER.warning(
+                "SFTP: no config_dir set — cannot verify host key for %s. "
+                "Proceeding without verification.",
+                host_id,
+            )
+            return
+
+        # Load existing known_hosts (file may not exist yet)
+        host_keys = paramiko.HostKeys()
+        try:
+            host_keys.load(known_hosts_path)
+        except FileNotFoundError:
+            pass  # first run — file will be created below
+        except Exception as exc:
+            _LOGGER.warning("SFTP: could not load known_hosts (%s): %s", known_hosts_path, exc)
+
+        key_type = server_key.get_name()
+        existing = host_keys.lookup(host_id)
+
+        if existing and key_type in existing:
+            # Host is known — verify the key matches
+            if existing[key_type] != server_key:
+                raise paramiko.SSHException(
+                    f"WARNING: Host key for '{host_id}' has changed! "
+                    "This may indicate a man-in-the-middle attack. "
+                    "If the server was legitimately re-keyed, remove its entry from "
+                    f"{known_hosts_path} and reconnect."
+                )
+            _LOGGER.debug("SFTP: host key verified for %s", host_id)
+        else:
+            # First time seeing this host — trust and record (TOFU)
+            _LOGGER.info(
+                "SFTP: new host %s — trusting %s key (fingerprint: %s). "
+                "Future connections will verify against this key.",
+                host_id,
+                key_type,
+                server_key.get_fingerprint().hex(),
+            )
+            host_keys.add(host_id, key_type, server_key)
+            try:
+                import os
+                os.makedirs(os.path.dirname(known_hosts_path), mode=0o700, exist_ok=True)
+                host_keys.save(known_hosts_path)
+            except Exception as exc:
+                _LOGGER.warning("SFTP: could not save known_hosts: %s", exc)
+
     def _make_client(self, host: str, port: int, username: str, auth: dict):
         """Open and return a (transport, sftp_client) pair.
 
@@ -197,14 +265,15 @@ class SftpManager:
         import paramiko  # lazy import – installed by HA requirements
 
         _LOGGER.info(
-            "Blueprint Studio SFTP: connecting to %s:%s as %s. "
-            "Host keys are auto-accepted (AutoAddPolicy). "
-            "Credentials are NOT logged.",
+            "Blueprint Studio SFTP: connecting to %s:%s as %s. Credentials are NOT logged.",
             host, port, username,
         )
 
         transport = paramiko.Transport((host, int(port)))
         transport.connect()  # bare TCP connect first
+
+        # Verify host key before authenticating (TOFU on first connect, strict thereafter)
+        self._verify_host_key(transport, host, int(port))
 
         # Authenticate
         auth_type = auth.get("type", "password")

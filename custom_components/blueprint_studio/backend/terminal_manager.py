@@ -64,6 +64,40 @@ BLOCKED_ARGS = [
     "reboot", "shutdown", "poweroff",    # System power
 ]
 
+class _TofuHostKeyPolicy:
+    """Paramiko MissingHostKeyPolicy implementing Trust-On-First-Use (TOFU).
+
+    - First connection to a host: key is trusted and saved to known_hosts.
+    - Subsequent connections: Paramiko's own key lookup handles verification;
+      this policy is only invoked for *missing* keys, so a changed key raises
+      SSHException before we even get here.
+    """
+
+    def __init__(self, known_hosts_path: str) -> None:
+        self._path = known_hosts_path
+
+    def missing_host_key(self, client, hostname, key):
+        try:
+            import paramiko
+        except ImportError:
+            return  # can't do much without paramiko
+
+        key_type = key.get_name()
+        fingerprint = key.get_fingerprint().hex()
+        _LOGGER.info(
+            "Terminal SSH: new host '%s' — trusting %s key (fingerprint: %s). "
+            "Future connections will verify against this key.",
+            hostname, key_type, fingerprint,
+        )
+        # Add to the client's in-memory host keys and persist
+        client.get_host_keys().add(hostname, key_type, key)
+        try:
+            os.makedirs(os.path.dirname(self._path), mode=0o700, exist_ok=True)
+            client.save_host_keys(self._path)
+        except Exception as exc:
+            _LOGGER.warning("Terminal SSH: could not save known_hosts: %s", exc)
+
+
 class TerminalManager:
     """Manages secure terminal command execution."""
 
@@ -312,9 +346,19 @@ TROUBLESHOOTING:
         # Validate inputs
         self._validate_ssh_input(username, host, int(port))
 
-        # Connect via Paramiko (same pattern as SFTP manager)
+        # Load known_hosts and apply TOFU host key verification
         ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        known_hosts_path = os.path.join(self.hass.config.config_dir, ".ssh", "known_hosts")
+        try:
+            ssh.load_host_keys(known_hosts_path)
+        except FileNotFoundError:
+            pass  # first run — file will be created on connect
+        except Exception as exc:
+            _LOGGER.warning("Terminal: could not load known_hosts: %s", exc)
+
+        # RejectPolicy raises SSHException on unknown/changed keys.
+        # load_system_host_keys() is NOT called — we manage our own file only.
+        ssh.set_missing_host_key_policy(_TofuHostKeyPolicy(known_hosts_path))
 
         if private_key:
             pkey, key_type = self._parse_ssh_key(private_key, key_passphrase)
@@ -332,8 +376,16 @@ TROUBLESHOOTING:
         # Create a local PTY pair to bridge with the Paramiko channel
         master_fd, slave_fd = pty.openpty()
 
-        # Use the current process PID as a pseudo-pid (no child process)
-        pseudo_pid = os.getpid()
+        # Put the slave end into raw mode so the local PTY line discipline
+        # passes all bytes through unmodified in both directions.  Without this,
+        # the discipline mangles escape sequences (e.g. arrow keys in application
+        # cursor key mode) that the remote shell sends or expects.
+        import tty
+        tty.setraw(slave_fd)
+
+        # Use -1 as a sentinel pid — there is no child process for a Paramiko session.
+        # Callers must NOT send signals to this value.
+        pseudo_pid = -1
 
         def _bridge_io():
             """Bridge I/O between slave_fd and Paramiko channel in a background thread."""
