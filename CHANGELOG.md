@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Hosts management in Settings → Integrations** — A new "Hosts" section lets you add, edit, and delete SSH/SFTP hosts from one central place. Hosts are shared across the SFTP panel and the terminal SSH dropdown, so you only need to configure a connection once. Each host shows its name, address, port, username, and auth method (password or key) at a glance.
 
+### Fixed
+
+- **Indentation size not persisting across sessions** — Tab size (e.g. 2 spaces) was saved correctly but not re-applied to the editor on startup. `applyEditorSettings` was missing `indentUnit`, `tabSize`, and `indentWithTabs` options, so the editor would revert to its default indentation until the setting was manually toggled. These options are now applied consistently on every settings load.
+
 ### Changed
 
 - **PDF.js migrated to ES module loading** — PDF.js is no longer loaded as a classic `<script>` tag. It is now imported on demand via a dynamic `import()` when a PDF file is opened. This allows keeping PDF.js up to date (4.6.82 → 4.10.38) as newer versions require ES module context.
