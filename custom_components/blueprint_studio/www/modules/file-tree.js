@@ -532,10 +532,16 @@ export function renderTreeLevel(tree, container, depth) {
     item.addEventListener("click", (e) => {
       if (e.target.closest(".tree-action-btn")) return;
       e.stopPropagation();
+      const isCurrentlyExpanded = state.expandedFolders.has(folderPath);
       if (state.treeCollapsableMode) {
         state.currentFolderPath = folderPath;
       } else {
-        state.currentNavigationPath = folderPath;
+        // Only update navigation path when expanding — not when collapsing.
+        // Setting currentNavigationPath while collapsing causes the tree to
+        // switch view to that folder, making it look like everything collapsed.
+        if (!isCurrentlyExpanded) {
+          state.currentNavigationPath = folderPath;
+        }
       }
       toggleFolder(folderPath);
     });
