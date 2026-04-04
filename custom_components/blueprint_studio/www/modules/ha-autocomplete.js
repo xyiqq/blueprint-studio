@@ -92,7 +92,7 @@ export function homeAssistantHint(editor, options) {
     // The typed word starts after the colon
     const afterColon = lineText.replace(/^\s*(action|service)\s*:\s*/, '');
     const serviceQuery = afterColon.trimStart();
-    const serviceStart = cursor.ch - serviceQuery.length;
+    const serviceStart = cursor.ch - afterColon.length;
     const matchedServices = HA_SERVICES.filter(s =>
       s.service.startsWith(serviceQuery) || (serviceQuery.length === 0)
     ).slice(0, 30);
@@ -373,7 +373,7 @@ export function getYamlContext(editor, lineNumber) {
   context.indent = match ? match[1].length : 0;
 
   // Check if this is a blueprint file by scanning top of doc
-  for (let i = 0; i < Math.min(lineNumber, 5); i++) {
+  for (let i = 0; i < Math.min(lineNumber, 15); i++) {
     const topLine = editor.getLine(i);
     if (topLine && topLine.startsWith('blueprint:')) {
       context.inBlueprint = true;

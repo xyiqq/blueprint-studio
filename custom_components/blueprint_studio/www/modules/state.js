@@ -76,6 +76,7 @@ export const state = {
   wordWrap: true,
   showLineNumbers: true,
   showMinimap: false,
+  autocompleteEnabled: true,
   showWhitespace: false,
   autoSave: false,
   autoSaveDelay: 1000,

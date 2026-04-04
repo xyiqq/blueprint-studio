@@ -111,6 +111,7 @@ export async function loadSettings() {
     state.wordWrap = settings.wordWrap !== false; // default true
     state.showLineNumbers = settings.showLineNumbers !== false; // default true
     state.showMinimap = settings.showMinimap || false;
+    state.autocompleteEnabled = settings.autocompleteEnabled !== false; // default true
     state.showWhitespace = settings.showWhitespace || false;
     state.autoSave = settings.autoSave || false;
     state.autoSaveDelay = parseInt(settings.autoSaveDelay) || 1000;
@@ -332,6 +333,7 @@ export async function saveSettings() {
       wordWrap: state.wordWrap,
       showLineNumbers: state.showLineNumbers,
       showMinimap: state.showMinimap,
+      autocompleteEnabled: state.autocompleteEnabled,
       showWhitespace: state.showWhitespace,
       autoSave: state.autoSave,
       autoSaveDelay: state.autoSaveDelay,

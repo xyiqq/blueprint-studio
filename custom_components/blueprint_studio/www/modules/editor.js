@@ -520,6 +520,9 @@ export function createEditor(container = null, isPrimary = true) {
     const mode = cm.getOption("mode");
     if (mode !== "ha-yaml" && mode !== "yaml") return;
 
+    // Respect the autocomplete setting
+    if (!state.autocompleteEnabled) return;
+
     // Don't autocomplete if we're in the middle of completing
     if (cm.state.completionActive) return;
 

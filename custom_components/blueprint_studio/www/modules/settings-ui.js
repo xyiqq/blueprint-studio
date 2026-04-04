@@ -315,6 +315,17 @@ export async function showAppSettings() {
 
             <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
               <div style="flex: 1;">
+                <div style="font-weight: 500; margin-bottom: 4px;">Autocomplete</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">Show YAML suggestions as you type</div>
+              </div>
+              <label class="toggle-switch" style="margin-left: 16px;">
+                <input type="checkbox" id="autocomplete-toggle" ${state.autocompleteEnabled ? 'checked' : ''}>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--divider-color);">
+              <div style="flex: 1;">
                 <div style="font-weight: 500; margin-bottom: 4px;">${t("settings.advanced.split_view")}</div>
                 <div style="font-size: 12px; color: var(--text-secondary);">${t("settings.advanced.split_view_hint")}</div>
               </div>
@@ -1194,6 +1205,16 @@ export async function showAppSettings() {
         eventBus.emit('ui:refresh-editor');
         await saveSettingsImpl();
         showToast(state.showMinimap ? "Minimap enabled" : "Minimap disabled", "success");
+      });
+    }
+
+    // Handle Autocomplete
+    const autocompleteToggle = document.getElementById("autocomplete-toggle");
+    if (autocompleteToggle) {
+      autocompleteToggle.addEventListener("change", async (e) => {
+        state.autocompleteEnabled = e.target.checked;
+        await saveSettingsImpl();
+        showToast(state.autocompleteEnabled ? "Autocomplete enabled" : "Autocomplete disabled", "success");
       });
     }
 

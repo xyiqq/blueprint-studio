@@ -264,9 +264,14 @@ export function renderFileTree() {
       
       treeItem.addEventListener("click", (e) => {
         if (e.target.closest(".tree-action-btn")) return;
+        e.stopPropagation();
         if (item.type === "folder") {
-          state.currentFolderPath = item.path;
-          state.expandedFolders.add(item.path);
+          if (!state.expandedFolders.has(item.path)) {
+            state.currentFolderPath = item.path;
+            state.expandedFolders.add(item.path);
+          } else {
+            state.expandedFolders.delete(item.path);
+          }
           renderFileTree();
         } else {
           eventBus.emit('file:open', { path: item.path });
@@ -534,7 +539,12 @@ export function renderTreeLevel(tree, container, depth) {
       e.stopPropagation();
       const isCurrentlyExpanded = state.expandedFolders.has(folderPath);
       if (state.treeCollapsableMode) {
-        state.currentFolderPath = folderPath;
+        // Only update currentFolderPath when expanding — not when collapsing.
+        // Changing it on collapse would shift the "active" folder context away
+        // from where the user is, mirroring the same bug fixed for navigation mode.
+        if (!isCurrentlyExpanded) {
+          state.currentFolderPath = folderPath;
+        }
       } else {
         // Only update navigation path when expanding — not when collapsing.
         // Setting currentNavigationPath while collapsing causes the tree to
@@ -1290,9 +1300,8 @@ export async function collapseAllFolders() {
     return;
   }
 
-  // Folder navigation mode (default/lazy loading): navigate back to root
-  if (state.currentNavigationPath !== "") {
-    state.navigationHistory = [];
-    await navigateToFolder("");
-  }
+  // Folder navigation mode (default/lazy loading): collapse all expanded folders
+  // without navigating away — just clear the expanded set and re-render in place.
+  state.expandedFolders.clear();
+  renderFileTree();
 }

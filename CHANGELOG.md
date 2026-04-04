@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
+
+- **Autocomplete toggle in Editor settings** — A new toggle in Settings → Editor → Behavior lets you disable the YAML autocomplete suggestions that appear as you type. Enabled by default.
+
+- **Autocomplete service completion offset fix** — When completing an `action:` or `service:` line with leading whitespace after the colon, the replacement range was calculated incorrectly, leaving a fragment of the old text. The start offset now accounts for the full (untrimmed) text after the colon.
+
+- **Blueprint detection scans more lines** — The YAML context analyser previously only scanned the first 5 lines to determine if a file was a blueprint. This has been increased to 15 lines to handle files with comments or blank lines before `blueprint:`.
+
+- **Modern trigger syntax in autocomplete** — Trigger suggestions now offer the current `trigger: state` form (HA 2024.4+) as the primary option, with the legacy `platform: state` variants listed below. Also added the missing `trigger: persistent_notification` trigger and `condition: trigger` condition type.
+
 - **`.editorconfig` support** — When a file is opened, Blueprint Studio now walks up the directory tree looking for `.editorconfig` files (stopping at `root = true`), exactly as VS Code does. `indent_style` and `indent_size` rules are applied to the editor for that file. Results are cached per directory for the session. Saving a `.editorconfig` file invalidates the cache for its directory so the new rules take effect immediately on the next file open.
 
 - **Smart Backspace** — Pressing Backspace in leading whitespace now deletes back to the previous indent stop (like VS Code), rather than one character at a time. For example, with 2-space indentation, pressing Backspace at column 4 removes 2 spaces at once. Applies only in space-indent mode; tab-indent mode is unchanged.
