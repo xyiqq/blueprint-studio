@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.6] - 2026-04-11
+
+- **YAML anchors and aliases no longer flagged as invalid entity IDs** — When `entity_id:` was assigned a YAML alias (`*alias_name`) or an anchor declaration was captured (`&anchor_name`), the validator incorrectly treated the token as a malformed entity ID. These are now recognised as YAML syntax and skipped.
+
 ## [2.4.5] - 2026-04-09
 
 - **Autocomplete toggle in Editor settings** — A new toggle in Settings → Editor → Behavior lets you disable the YAML autocomplete suggestions that appear as you type. Enabled by default.
