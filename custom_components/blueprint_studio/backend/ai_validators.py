@@ -138,6 +138,10 @@ def _validate_entity_id(entity_id: str, line_num: int, original_line: str) -> di
     if entity_id.startswith('!') or entity_id.startswith('*') or entity_id.startswith('&'):
         return None
 
+    # Device registry UUIDs (32 hex chars) are valid in device triggers
+    if re.fullmatch(r'[0-9a-f]{32}', entity_id):
+        return None
+
     if _has_jinja_template(entity_id) or entity_id.startswith('['):
         return None
 
@@ -492,7 +496,7 @@ def check_yaml(content: str, strict_mode: bool = True) -> web.Response:
                     continue
                 auto_errors = _validate_automation(item, lines)
                 for error in auto_errors:
-                    if error["type"] == "missing_automation_id":
+                    if error["type"] in ("missing_automation_id", "missing_action"):
                         best_practice_warnings.append(error)
                     else:
                         syntax_errors.append(error)
