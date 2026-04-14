@@ -14,8 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Device registry UUIDs no longer flagged as invalid entity IDs** — In device triggers, the `entity_id` field holds a 32-character hex UUID rather than a `domain.entity` string. The validator now recognises this format and skips it instead of reporting it as malformed.
 
-- **Missing `action:` downgraded from error to warning** — Automations without an `action:` or `actions:` key were reported as a blocking ❌ syntax error. Since users may be mid-edit, this is now a ⚠️ best-practice warning instead.
-
 ## [2.4.5] - 2026-04-09
 
 - **Autocomplete toggle in Editor settings** — A new toggle in Settings → Editor → Behavior lets you disable the YAML autocomplete suggestions that appear as you type. Enabled by default.
