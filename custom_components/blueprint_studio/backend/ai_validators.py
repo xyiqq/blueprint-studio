@@ -496,7 +496,7 @@ def check_yaml(content: str, strict_mode: bool = True) -> web.Response:
                     continue
                 auto_errors = _validate_automation(item, lines)
                 for error in auto_errors:
-                    if error["type"] in ("missing_automation_id", "missing_action"):
+                    if error["type"] == "missing_automation_id":
                         best_practice_warnings.append(error)
                     else:
                         syntax_errors.append(error)
