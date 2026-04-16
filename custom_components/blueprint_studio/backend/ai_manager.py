@@ -78,6 +78,23 @@ class AIManager:
             return f"{raw_url}/chat/completions"
         return f"{raw_url}/v1/chat/completions"
 
+    def _build_openai_models_url(self, base_url: str | None, default_base: str) -> str:
+        """Normalize a base URL or endpoint into an OpenAI-compatible models URL."""
+        raw_url = (base_url or default_base or "").strip().rstrip("/")
+        if not raw_url:
+            return ""
+
+        lower_url = raw_url.lower()
+        if lower_url.endswith("/v1/models") or lower_url.endswith("/models"):
+            return raw_url
+        if lower_url.endswith("/v1/chat/completions"):
+            return raw_url[:-len("/chat/completions")] + "/models"
+        if lower_url.endswith("/chat/completions"):
+            return raw_url[: -len("/chat/completions")] + "/models"
+        if lower_url.endswith("/v1"):
+            return f"{raw_url}/models"
+        return f"{raw_url}/v1/models"
+
     def _build_ollama_url(self, base_url: str | None) -> str:
         """Normalize an Ollama base URL into its chat endpoint."""
         raw_url = (base_url or "http://localhost:11434").strip().rstrip("/")
@@ -87,6 +104,19 @@ class AIManager:
         if raw_url.lower().endswith("/api/chat"):
             return raw_url
         return f"{raw_url}/api/chat"
+
+    def _build_ollama_models_url(self, base_url: str | None) -> str:
+        """Normalize an Ollama base URL into its model tags endpoint."""
+        raw_url = (base_url or "http://localhost:11434").strip().rstrip("/")
+        if not raw_url:
+            return ""
+
+        lower_url = raw_url.lower()
+        if lower_url.endswith("/api/tags"):
+            return raw_url
+        if lower_url.endswith("/api/chat"):
+            return raw_url[: -len("/api/chat")] + "/api/tags"
+        return f"{raw_url}/api/tags"
 
     def _extract_text_content(self, payload: Any) -> str:
         """Extract plain text from the common provider response shapes."""
@@ -156,6 +186,304 @@ class AIManager:
         except Exception as err:
             _LOGGER.error("%s API error: %s", provider_label, err)
             return json_message(f"API error: {str(err)}", status_code=500)
+
+    async def _get_json_payload(
+        self,
+        provider_label: str,
+        url: str,
+        headers: dict[str, str],
+    ) -> tuple[Any | None, web.Response | None]:
+        """Execute an HTTP GET request and return decoded JSON or an error response."""
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, headers=headers) as response:
+                    response_text = await response.text()
+                    try:
+                        response_data: Any = json.loads(response_text) if response_text else {}
+                    except json.JSONDecodeError:
+                        response_data = {}
+
+                    if response.status != 200:
+                        error_detail = ""
+                        if isinstance(response_data, dict):
+                            if isinstance(response_data.get("error"), dict):
+                                error_detail = response_data["error"].get("message", "")
+                            elif response_data.get("error"):
+                                error_detail = str(response_data.get("error"))
+                            elif response_data.get("message"):
+                                error_detail = str(response_data.get("message"))
+                        if not error_detail and response_text:
+                            error_detail = response_text[:300]
+
+                        message = f"{provider_label} Error: {response.status}"
+                        if error_detail:
+                            message = f"{message} - {error_detail}"
+                        return None, json_message(message, status_code=response.status)
+
+                    return response_data, None
+        except Exception as err:
+            _LOGGER.error("%s API error: %s", provider_label, err)
+            return None, json_message(f"API error: {str(err)}", status_code=500)
+
+    def _merge_settings(self, settings_override: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Merge runtime settings override on top of persisted settings."""
+        settings = dict(self.data.get("settings", {}))
+        if isinstance(settings_override, dict):
+            alias_map = {
+                "local_ai_provider": "localAiProvider",
+                "ollama_url": "ollamaUrl",
+                "ollama_model": "ollamaModel",
+                "lm_studio_url": "lmStudioUrl",
+                "lm_studio_model": "lmStudioModel",
+                "custom_ai_url": "customAiUrl",
+                "custom_ai_model": "customAiModel",
+                "custom_ai_api_key": "customAiApiKey",
+                "cloud_provider": "cloudProvider",
+                "openai_base_url": "openaiBaseUrl",
+                "openai_api_key": "openaiApiKey",
+                "gemini_api_key": "geminiApiKey",
+                "claude_api_key": "claudeApiKey",
+                "current_model": "aiModel",
+            }
+            merged_override = {k: v for k, v in settings_override.items() if v is not None}
+            for key, value in list(merged_override.items()):
+                alias = alias_map.get(key)
+                if alias and alias not in merged_override:
+                    merged_override[alias] = value
+            settings.update(merged_override)
+        return settings
+
+    def _resolve_ai_selection(
+        self,
+        settings: dict[str, Any],
+        ai_type: str | None = None,
+        cloud_provider: str | None = None,
+        ai_model: str | None = None,
+    ) -> tuple[str, str | None, str | None]:
+        """Resolve AI mode/provider/model using request values first, then stored settings."""
+        resolved_ai_type = ai_type or settings.get("aiType")
+        resolved_cloud_provider = cloud_provider
+        resolved_model = ai_model
+
+        if not resolved_ai_type:
+            old_provider = settings.get("aiProvider", "local")
+            if old_provider == "local":
+                resolved_ai_type = "rule-based"
+            elif old_provider in ["gemini", "openai", "claude"]:
+                resolved_ai_type = "cloud"
+                if not resolved_cloud_provider:
+                    resolved_cloud_provider = old_provider
+            else:
+                resolved_ai_type = "rule-based"
+
+        if resolved_ai_type == "cloud":
+            if not resolved_cloud_provider:
+                resolved_cloud_provider = settings.get("cloudProvider") or settings.get("aiProvider", "gemini")
+            if not resolved_model:
+                resolved_model = settings.get("aiModel")
+
+        return resolved_ai_type, resolved_cloud_provider, resolved_model
+
+    def _normalize_model_entries(self, raw_models: list[dict[str, Any] | str], configured_model: str | None = None) -> tuple[list[dict[str, Any]], bool]:
+        """Normalize remote model data and preserve a configured custom model when absent."""
+        models: list[dict[str, Any]] = []
+        seen: set[str] = set()
+
+        for item in raw_models:
+            if isinstance(item, dict):
+                model_id = str(item.get("id") or item.get("name") or "").strip()
+                label = str(item.get("label") or model_id).strip()
+                model_entry = dict(item)
+            else:
+                model_id = str(item).strip()
+                label = model_id
+                model_entry = {}
+
+            if not model_id or model_id in seen:
+                continue
+
+            seen.add(model_id)
+            model_entry["id"] = model_id
+            model_entry["label"] = label or model_id
+            models.append(model_entry)
+
+        configured = (configured_model or "").strip()
+        configured_available = configured in seen if configured else False
+
+        if configured and not configured_available:
+            models.insert(0, {
+                "id": configured,
+                "label": configured,
+                "is_custom": True,
+                "is_configured": True,
+            })
+        elif configured:
+            for model in models:
+                if model["id"] == configured:
+                    model["is_configured"] = True
+                    break
+
+        return models, configured_available
+
+    def _parse_openai_models(self, response_data: Any) -> list[dict[str, Any]]:
+        """Parse OpenAI-compatible /v1/models responses."""
+        if not isinstance(response_data, dict):
+            return []
+
+        models: list[dict[str, Any]] = []
+        for item in response_data.get("data", []):
+            if not isinstance(item, dict):
+                continue
+            model_id = str(item.get("id") or "").strip()
+            if not model_id:
+                continue
+            models.append({
+                "id": model_id,
+                "label": model_id,
+                "owned_by": item.get("owned_by"),
+            })
+        return models
+
+    def _parse_ollama_models(self, response_data: Any) -> list[dict[str, Any]]:
+        """Parse Ollama /api/tags responses."""
+        if not isinstance(response_data, dict):
+            return []
+
+        models: list[dict[str, Any]] = []
+        for item in response_data.get("models", []):
+            if not isinstance(item, dict):
+                continue
+            model_id = str(item.get("model") or item.get("name") or "").strip()
+            if not model_id:
+                continue
+            models.append({
+                "id": model_id,
+                "label": model_id,
+                "size": item.get("size"),
+                "digest": item.get("digest"),
+            })
+        return models
+
+    async def get_models(
+        self,
+        ai_type: str | None = None,
+        cloud_provider: str | None = None,
+        ai_model: str | None = None,
+        settings_override: dict[str, Any] | None = None,
+    ) -> web.Response:
+        """Return available models for the current AI provider configuration."""
+        settings = self._merge_settings(settings_override)
+        resolved_ai_type, resolved_cloud_provider, resolved_model = self._resolve_ai_selection(
+            settings, ai_type, cloud_provider, ai_model
+        )
+
+        provider = None
+        endpoint = None
+        source = "builtin"
+        raw_models: list[dict[str, Any] | str] = []
+
+        if resolved_ai_type == "local-ai":
+            provider = settings.get("localAiProvider", "ollama")
+
+            if provider == "ollama":
+                endpoint = self._build_ollama_models_url(settings.get("ollamaUrl"))
+                payload, error_response = await self._get_json_payload("Ollama", endpoint, {})
+                if error_response:
+                    return error_response
+                raw_models = self._parse_ollama_models(payload)
+                resolved_model = settings.get("ollamaModel") or resolved_model
+                source = "remote"
+            elif provider == "lm-studio":
+                endpoint = self._build_openai_models_url(settings.get("lmStudioUrl"), "http://localhost:1234")
+                payload, error_response = await self._get_json_payload(
+                    "LM Studio",
+                    endpoint,
+                    {"Content-Type": "application/json"},
+                )
+                if error_response:
+                    return error_response
+                raw_models = self._parse_openai_models(payload)
+                resolved_model = settings.get("lmStudioModel") or resolved_model
+                source = "remote"
+            elif provider == "custom":
+                custom_url = settings.get("customAiUrl")
+                if not custom_url:
+                    return json_message("Custom AI endpoint URL is required", status_code=400)
+                endpoint = self._build_openai_models_url(custom_url, custom_url)
+                headers = {"Content-Type": "application/json"}
+                custom_api_key = settings.get("customAiApiKey") or settings.get("openaiApiKey")
+                if custom_api_key:
+                    headers["Authorization"] = f"Bearer {custom_api_key}"
+                payload, error_response = await self._get_json_payload("Custom AI", endpoint, headers)
+                if error_response:
+                    return error_response
+                raw_models = self._parse_openai_models(payload)
+                resolved_model = settings.get("customAiModel") or resolved_model
+                source = "remote"
+            else:
+                return json_message(f"Unknown local AI provider: {provider}", status_code=400)
+        elif resolved_ai_type == "cloud":
+            provider = resolved_cloud_provider or settings.get("cloudProvider") or "gemini"
+
+            if provider == "openai":
+                key = settings.get("openaiApiKey")
+                if not key:
+                    return json_message("No API key for openai", status_code=400)
+                endpoint = self._build_openai_models_url(settings.get("openaiBaseUrl"), "https://api.openai.com")
+                payload, error_response = await self._get_json_payload(
+                    "OpenAI",
+                    endpoint,
+                    {"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                )
+                if error_response:
+                    return error_response
+                raw_models = self._parse_openai_models(payload)
+                source = "remote"
+            elif provider == "gemini":
+                raw_models = [
+                    "gemini-3-pro-preview",
+                    "gemini-3-flash-preview",
+                    "gemini-2.5-pro",
+                    "gemini-2.5-flash",
+                    "gemini-2.5-flash-lite",
+                ]
+            elif provider == "claude":
+                raw_models = [
+                    "claude-sonnet-4-5-20250929",
+                    "claude-haiku-4-5-20251001",
+                    "claude-opus-4-5-20251101",
+                ]
+            else:
+                return json_message(f"Unknown provider: {provider}", status_code=400)
+        else:
+            return json_response({
+                "success": True,
+                "ai_type": resolved_ai_type,
+                "provider": "rule-based",
+                "models": [],
+                "selected_model": resolved_model or "",
+                "configured_model": resolved_model or "",
+                "configured_model_available": False,
+                "supports_custom_model": False,
+                "source": "builtin",
+            })
+
+        models, configured_available = self._normalize_model_entries(raw_models, resolved_model)
+
+        supports_custom_model = provider in {"openai", "ollama", "lm-studio", "custom"}
+
+        return json_response({
+            "success": True,
+            "ai_type": resolved_ai_type,
+            "provider": provider,
+            "models": models,
+            "selected_model": resolved_model or "",
+            "configured_model": resolved_model or "",
+            "configured_model_available": configured_available,
+            "supports_custom_model": supports_custom_model,
+            "source": source,
+            "endpoint": endpoint,
+        })
 
     def _build_ai_prompt(self, query: str, file_content: str | None) -> tuple[str, str]:
         """Build the common system prompt and user message for external AI providers."""
@@ -294,27 +622,10 @@ Example modern automation:
                 return json_message("Query is empty", status_code=400)
 
             query_lower = query.lower()
-            settings = self.data.get("settings", {})
-
-            # Use provided ai_type from request, or get from settings
-            if not ai_type:
-                ai_type = settings.get("aiType")
-                if not ai_type:
-                    old_provider = settings.get("aiProvider", "local")
-                    if old_provider == "local":
-                        ai_type = "rule-based"
-                    elif old_provider in ["gemini", "openai", "claude"]:
-                        ai_type = "cloud"
-                        if not cloud_provider:
-                            cloud_provider = old_provider
-                    else:
-                        ai_type = "rule-based"
-
-            if ai_type == "cloud":
-                if not cloud_provider:
-                    cloud_provider = settings.get("cloudProvider") or settings.get("aiProvider", "gemini")
-                if not ai_model:
-                    ai_model = settings.get("aiModel")
+            settings = self._merge_settings()
+            ai_type, cloud_provider, ai_model = self._resolve_ai_selection(
+                settings, ai_type, cloud_provider, ai_model
+            )
 
             # Cloud AI providers
             if ai_type == "cloud" and cloud_provider in ["gemini", "openai", "claude"]:
