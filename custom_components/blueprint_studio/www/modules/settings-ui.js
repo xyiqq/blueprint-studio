@@ -543,7 +543,7 @@ export async function showAppSettings() {
                   <input type="radio" name="ai-type" value="local-ai" ${state.aiType === 'local-ai' ? 'checked' : ''} style="margin-right: 8px;">
                   <div>
                     <div style="font-weight: 500; font-size: 13px;">Local AI</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Use locally-running LLMs (Ollama, LM Studio, etc.)</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Use local or self-hosted LLM servers such as Ollama, LM Studio, or your own LAN endpoint.</div>
                   </div>
                 </label>
 
@@ -551,7 +551,7 @@ export async function showAppSettings() {
                   <input type="radio" name="ai-type" value="cloud" ${state.aiType === 'cloud' ? 'checked' : ''} style="margin-right: 8px;">
                   <div>
                     <div style="font-weight: 500; font-size: 13px;">Cloud AI</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Use cloud AI services (Gemini, OpenAI, Claude)</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Use hosted providers such as Gemini, OpenAI, Claude, or an OpenAI-compatible relay.</div>
                   </div>
                 </label>
               </div>
@@ -568,7 +568,7 @@ export async function showAppSettings() {
                 <select id="local-ai-provider-select" class="git-settings-input" style="width: 100%; margin-bottom: 12px;">
                   <option value="ollama" ${state.localAiProvider === 'ollama' ? 'selected' : ''}>Ollama</option>
                   <option value="lm-studio" ${state.localAiProvider === 'lm-studio' ? 'selected' : ''}>LM Studio</option>
-                  <option value="custom" ${state.localAiProvider === 'custom' ? 'selected' : ''}>Custom Endpoint</option>
+                  <option value="custom" ${state.localAiProvider === 'custom' ? 'selected' : ''}>Custom Local Endpoint</option>
                 </select>
 
                 <!-- Ollama Config -->
@@ -599,14 +599,14 @@ export async function showAppSettings() {
 
                 <!-- Custom AI Config -->
                 <div id="custom-ai-config" style="display: ${state.localAiProvider === 'custom' ? 'block' : 'none'};">
-                  <div style="font-size: 12px; margin-bottom: 4px;">API Endpoint URL</div>
+                  <div style="font-size: 12px; margin-bottom: 4px;">Endpoint URL</div>
                   <input type="text" id="custom-ai-url" class="git-settings-input" style="width: 100%; margin-bottom: 8px;" value="${state.customAiUrl || ''}" placeholder="http://localhost:8000">
 
                   <div style="font-size: 12px; margin-bottom: 4px;">Model Name</div>
                   <input type="text" id="custom-ai-model" class="git-settings-input" style="width: 100%; margin-bottom: 8px;" value="${state.customAiModel || ''}" placeholder="model-name">
 
                   <div style="font-size: 11px; color: var(--text-secondary); padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                    Must support OpenAI-compatible API format with <code style="background: var(--bg-tertiary); padding: 2px 6px; border-radius: 3px;">/v1/chat/completions</code> endpoint.
+                    Use this for local or self-hosted servers that already expose an OpenAI-compatible <code style="background: var(--bg-tertiary); padding: 2px 6px; border-radius: 3px;">/v1/chat/completions</code> endpoint. If you want OpenAI or an OpenAI-compatible relay with an API key, use Cloud AI -> OpenAI below.
                   </div>
                 </div>
               </div>
@@ -616,9 +616,13 @@ export async function showAppSettings() {
                 <div style="font-weight: 500; margin-bottom: 8px; font-size: 13px;">Cloud Provider</div>
                 <select id="cloud-provider-select" class="git-settings-input" style="width: 100%; margin-bottom: 12px;">
                   <option value="gemini" ${state.cloudProvider === 'gemini' ? 'selected' : ''}>Google Gemini</option>
-                  <option value="openai" ${state.cloudProvider === 'openai' ? 'selected' : ''}>OpenAI</option>
+                  <option value="openai" ${state.cloudProvider === 'openai' ? 'selected' : ''}>OpenAI / Compatible Endpoint</option>
                   <option value="claude" ${state.cloudProvider === 'claude' ? 'selected' : ''}>Anthropic Claude</option>
                 </select>
+
+                <div id="openai-provider-help" style="display: ${state.cloudProvider === 'openai' ? 'block' : 'none'}; margin-bottom: 12px; font-size: 11px; color: var(--text-secondary); padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+                  Leave Base URL empty to use the official OpenAI API. Set a Base URL if you want to route requests through a custom relay, proxy, or any OpenAI-compatible endpoint.
+                </div>
 
                 <!-- Cloud Model Selection -->
                 <div style="font-size: 12px; margin-bottom: 4px;">AI Model</div>
@@ -670,6 +674,9 @@ export async function showAppSettings() {
                 </div>
 
                 <div id="openai-api-section" style="display: ${state.cloudProvider === 'openai' ? 'block' : 'none'};">
+                  <div style="font-size: 12px; margin-bottom: 4px;">Base URL (optional)</div>
+                  <input type="text" id="openai-base-url" class="git-settings-input" style="width: 100%; margin-bottom: 8px;" value="${state.openaiBaseUrl || ''}" placeholder="Leave blank for https://api.openai.com/v1">
+
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <div style="font-size: 12px;">OpenAI API Key</div>
                     <a href="https://platform.openai.com/api-keys" target="_blank" style="font-size: 11px; color: var(--accent-color); text-decoration: none; display: flex; align-items: center;">
@@ -1470,6 +1477,7 @@ export async function showAppSettings() {
     const geminiModelContainer = document.getElementById("gemini-model-container");
     const openaiModelContainer = document.getElementById("openai-model-container");
     const claudeModelContainer = document.getElementById("claude-model-container");
+    const openaiProviderHelp = document.getElementById("openai-provider-help");
     const geminiSection = document.getElementById("gemini-api-section");
     const openaiSection = document.getElementById("openai-api-section");
     const claudeSection = document.getElementById("claude-api-section");
@@ -1488,6 +1496,7 @@ export async function showAppSettings() {
         if (geminiSection) geminiSection.style.display = provider === 'gemini' ? 'block' : 'none';
         if (openaiSection) openaiSection.style.display = provider === 'openai' ? 'block' : 'none';
         if (claudeSection) claudeSection.style.display = provider === 'claude' ? 'block' : 'none';
+        if (openaiProviderHelp) openaiProviderHelp.style.display = provider === 'openai' ? 'block' : 'none';
 
         // Set default models
         if (provider === 'gemini') {
@@ -1550,6 +1559,14 @@ export async function showAppSettings() {
       });
     }
 
+    const openaiBaseUrlInput = document.getElementById("openai-base-url");
+    if (openaiBaseUrlInput) {
+      openaiBaseUrlInput.addEventListener("change", (e) => {
+        state.openaiBaseUrl = e.target.value.trim();
+        saveSettingsImpl();
+      });
+    }
+
     const claudeKeyInput = document.getElementById("claude-api-key");
     if (claudeKeyInput) {
       claudeKeyInput.addEventListener("change", (e) => {
@@ -1586,6 +1603,7 @@ export async function showAppSettings() {
 
         state.geminiApiKey = document.getElementById("gemini-api-key")?.value || '';
         state.openaiApiKey = document.getElementById("openai-api-key")?.value || '';
+        state.openaiBaseUrl = document.getElementById("openai-base-url")?.value.trim() || '';
         state.claudeApiKey = document.getElementById("claude-api-key")?.value || '';
 
         await saveSettingsImpl();

@@ -63,6 +63,7 @@ export const state = {
   aiModel: "gemini-2.0-flash-exp",
   geminiApiKey: "",
   openaiApiKey: "",
+  openaiBaseUrl: "",
   claudeApiKey: "",
   themePreset: "dark",
   accentColor: null,
